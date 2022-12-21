@@ -1,15 +1,21 @@
 #include <SPI.h>
 #include "nRF24L01.h"
 #include "RF24.h"
+#include "SH1106Wire.h"
 
 //
 // Hardware configuration
 //
 #define CSN D8
-#define CE D2
-// Set up nRF24L01 radio on SPI bus plus pins CE & CSN
+#define CE D3
+#define BUTTON_PIN D0
 
-RF24 radio(CE,CSN);
+RF24 radio(CE, CSN);
+SH1106Wire display(0x3C, D2, D1);
+
+const unsigned long eventTime_1_Button = 100;
+
+unsigned long previousTime_1 = 0;
 
 //
 // Define Channel Addresses
@@ -75,35 +81,45 @@ void setup(void)
   // Start Serial port
   Serial.begin(115200);
   delay(200);
-  Serial.println();Serial.println();
+  Serial.println(); Serial.println();
+
+  //  Set up OLED
+  display.init();
+  display.flipScreenVertically();
+  display.setFont(ArialMT_Plain_10);
+  display.drawString(5, 15, "2.4 GHz Channel Analyzer");
+  display.drawString(17, 45, "By Angelina Tsuboi");
+  display.display();
 
   // Setup and configure rf radio
   radio.begin();
   radio.setAutoAck(false);
   //radio.openWritingPipe(pipes[0]);
   //radio.openReadingPipe(1,pipes[1]);
-  
+
   // Get into standby mode
   radio.startListening();
   delayMicroseconds(130);
-  radio.stopListening(); 
+  radio.stopListening();
+
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
 
   // Display Radio Configuration
   getradiodetails();
   radio.setDataRate(RF24_1MBPS);
-  
+
   // Print out header, high then low digit
   int i = 0;
   while ( i < num_channels )
   {
-    Serial.print(i>>4);
+    Serial.print(i >> 4);
     ++i;
   }
   Serial.println();
   i = 0;
   while ( i < num_channels )
   {
-    Serial.print(i&0xf, HEX);
+    Serial.print(i & 0xf, HEX);
     ++i;
   }
   Serial.println();
@@ -115,8 +131,21 @@ void setup(void)
 
 void loop()
 {
+  unsigned long currentTime = millis();
+
+  if (currentTime - previousTime_1 >= eventTime_1_Button) {
+    if (digitalRead(BUTTON_PIN) == HIGH) {
+      Serial.println("HELLO");
+      delay(10);
+    }
+    Serial.println(digitalRead(BUTTON_PIN));
+    delay(100);
+    previousTime_1 = currentTime;
+  }
+
+
   // Clear measurement values
-  memset(values,0,sizeof(values));
+  memset(values, 0, sizeof(values));
 
   // Scan all channels num_reps times
   int rep_counter = num_reps;
@@ -134,7 +163,7 @@ void loop()
       radio.stopListening();
 
       // Did we get a carrier?
-      if ( radio.testCarrier() ){
+      if ( radio.testCarrier() ) {
         ++values[i];
       }
     }
@@ -145,7 +174,7 @@ void loop()
   int i = 0;
   while ( i < num_channels )
   {
-    Serial.print(min(zeroVal,values[i]));
+    Serial.print(min(zeroVal, values[i]));
     ++i;
   }
   Serial.println();
@@ -161,18 +190,18 @@ void loop()
 
 void getradiodetails()
 {
-  Serial.println();Serial.println();
+  Serial.println(); Serial.println();
   //print_status(spiTrans(NOP));
-  print_address_register("RX_ADDR_P0-1\t",RX_ADDR_P0,2);
-  print_byte_register("RX_ADDR_P2-5\t",RX_ADDR_P2,4);
-  print_address_register("TX_ADDR\t\t",TX_ADDR, 1);
-  print_byte_register("RX_PW_P0-6\t\t",RX_PW_P0,6);
-  print_byte_register("EN_AA\t\t",EN_AA,1);
-  print_byte_register("EN_RXADDR\t\t",EN_RXADDR,1);
-  print_byte_register("RF_CH\t\t",RF_CH,1);
-  print_byte_register("RF_SETUP\t\t",RF_SETUP,1);
-  print_byte_register("CONFIG\t\t",NRF_CONFIG,1);
-  print_byte_register("DYNPD/FEATURE\t",DYNPD,2);
+  print_address_register("RX_ADDR_P0-1\t", RX_ADDR_P0, 2);
+  print_byte_register("RX_ADDR_P2-5\t", RX_ADDR_P2, 4);
+  print_address_register("TX_ADDR\t\t", TX_ADDR, 1);
+  print_byte_register("RX_PW_P0-6\t\t", RX_PW_P0, 6);
+  print_byte_register("EN_AA\t\t", EN_AA, 1);
+  print_byte_register("EN_RXADDR\t\t", EN_RXADDR, 1);
+  print_byte_register("RF_CH\t\t", RF_CH, 1);
+  print_byte_register("RF_SETUP\t\t", RF_SETUP, 1);
+  print_byte_register("CONFIG\t\t", NRF_CONFIG, 1);
+  print_byte_register("DYNPD/FEATURE\t", DYNPD, 2);
   String statTemp = rf24_datarate_e_str_P[getDataRate()];
   Serial.printf("Data Rate\t\t= %s\r\n", statTemp.c_str());
   statTemp = rf24_model_e_str_P[isPVariant()];
@@ -181,7 +210,7 @@ void getradiodetails()
   Serial.printf("CRC Length\t\t= %s\r\n", statTemp.c_str());
   statTemp = rf24_pa_dbm_e_str_P[getPALevel()];
   Serial.printf("PA Power\t\t= %s\r\n", statTemp.c_str());
-  Serial.println();Serial.println();
+  Serial.println(); Serial.println();
 }
 
 uint8_t spiTrans(uint8_t cmd)
@@ -197,11 +226,11 @@ void print_status(uint8_t status)
 {
   printf_P(PSTR("STATUS\t\t= 0x%02x RX_DR=%x TX_DS=%x MAX_RT=%x RX_P_NO=%x TX_FULL=%x\r\n"),
            status,
-           (status & _BV(RX_DR))?1:0,
-           (status & _BV(TX_DS))?1:0,
-           (status & _BV(MAX_RT))?1:0,
+           (status & _BV(RX_DR)) ? 1 : 0,
+           (status & _BV(TX_DS)) ? 1 : 0,
+           (status & _BV(MAX_RT)) ? 1 : 0,
            ((status >> RX_P_NO) & 0x07),
-           (status & _BV(TX_FULL))?1:0
+           (status & _BV(TX_FULL)) ? 1 : 0
           );
 }
 
@@ -224,16 +253,16 @@ void print_address_register(const char* name, uint8_t reg, uint8_t qty)
   while (qty--)
   {
     uint8_t buffer[addr_width];
-    read_register(reg++,buffer,sizeof buffer);
+    read_register(reg++, buffer, sizeof buffer);
     valueBuf += " 0x";
     uint8_t* bufptr = buffer + sizeof buffer;
-    while( --bufptr >= buffer ){
-      sprintf(tempBuff, "%02x" ,*bufptr);
+    while ( --bufptr >= buffer ) {
+      sprintf(tempBuff, "%02x" , *bufptr);
       valueBuf += tempBuff;
     }
   }
-   valueBuf +="\r\n";
-   Serial.print(valueBuf);
+  valueBuf += "\r\n";
+  Serial.print(valueBuf);
 }
 
 uint8_t read_register(uint8_t reg, uint8_t* buf, uint8_t len)
@@ -241,7 +270,7 @@ uint8_t read_register(uint8_t reg, uint8_t* buf, uint8_t len)
   uint8_t status;
   beginTransaction();
   status = SPI.transfer( R_REGISTER | ( REGISTER_MASK & reg ) );
-  while ( len-- ){
+  while ( len-- ) {
     *buf++ = SPI.transfer(0xff);
   }
   endTransaction();
@@ -254,8 +283,8 @@ void print_byte_register(const char* name, uint8_t reg, uint8_t qty)
   String valueBuf;
   valueBuf += name;
   valueBuf += "=";
-  while (qty--){
-    sprintf(tempBuff ," 0x%02x" , read_register(reg++));
+  while (qty--) {
+    sprintf(tempBuff , " 0x%02x" , read_register(reg++));
     valueBuf += tempBuff;
   }
   valueBuf += "\r\n";
@@ -300,12 +329,12 @@ rf24_datarate_e getDataRate( void )
 bool isPVariant(void)
 {
   p_variant = false ;
-  if( radio.setDataRate( RF24_250KBPS ) )
+  if ( radio.setDataRate( RF24_250KBPS ) )
   {
     p_variant = true ;
   }
   byte regRead = read_register(RF_SETUP);
-  if( regRead == 0b00001110 )     // register default for nRF24L01P
+  if ( regRead == 0b00001110 )    // register default for nRF24L01P
   {
     p_variant = true ;
   }
@@ -315,10 +344,10 @@ bool isPVariant(void)
 rf24_crclength_e getCRCLength(void)
 {
   rf24_crclength_e result = RF24_CRC_DISABLED;
-  
+
   uint8_t config = read_register(NRF_CONFIG) & ( _BV(CRCO) | _BV(EN_CRC)) ;
   uint8_t AA = read_register(EN_AA);
-  
+
   if ( config & _BV(EN_CRC ) || AA)
   {
     if ( config & _BV(CRCO) )
