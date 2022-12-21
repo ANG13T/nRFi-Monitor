@@ -3,6 +3,8 @@
 #include "RF24.h"
 #include "SH1106Wire.h"
 
+// WiFi and Device Presence Analysis Toolkit with the NRF24
+
 //
 // Hardware configuration
 //
@@ -19,6 +21,19 @@ const unsigned long eventTime_2_Scan = 10;
 
 unsigned long previousTime_1 = 0;
 unsigned long previousTime_2 = 0;
+
+int lState = 0;
+int rState = 0;
+int menuPointer = 0;
+
+const char *options[3] = {
+  "2.4GHz Scanner",
+  "2.4GHz Channel Analyzer",
+  "WiFi Scanner"
+};
+
+
+int displayState = 0;
 
 //
 // Define Channel Addresses
@@ -98,6 +113,7 @@ void setup(void)
   radio.stopListening();
 
   pinMode(BUTTON_INPUT, INPUT_PULLUP);
+  pinMode(BACK_BUTTON_INPUT, INPUT_PULLUP);
 
   //  Set up OLED
   display.init();
@@ -132,26 +148,71 @@ void setup(void)
 // Main Loop
 //
 
-void loop()
-{
-  unsigned long currentTime = millis();
+void buttonInput() {
+  int buttonVal = digitalRead(BUTTON_INPUT); // HIGH = open, LOW = pressed
+  int backButtonVal = digitalRead(BACK_BUTTON_INPUT);
+  Serial.println(buttonVal);
+  if (buttonVal == LOW) {
+    Serial.println("pressed!");
+    delay(100);
+  }
+  if (backButtonVal == LOW) {
+    Serial.println("pressed 2!");
+    delay(100);
+  }
+}
 
-  if (currentTime - previousTime_1 >= eventTime_1_Button) {
-    int buttonVal = digitalRead(BUTTON_INPUT); // HIGH = open, LOW = pressed
-    int backButtonVal = digitalRead(BACK_BUTTON_INPUT); 
-    Serial.println(buttonVal);
-    if (buttonVal == LOW) {
-      Serial.println("pressed!");
-      delay(100);
-    }
-    if (backButtonVal == LOW) {
-      Serial.println("pressed 2!");
-      delay(100);
-    }
-    previousTime_1 = currentTime;
+void menuButtonPress() {
+  lState = digitalRead(BUTTON_INPUT);
+  rState = digitalRead(BACK_BUTTON_INPUT);
+
+  // uni-directional menu scroller (left = navigation, right = selection)
+  if (lState == LOW && menuPointer == 2) {
+    menuPointer = 0;
+    delay(300);
+  } else if (lState == LOW) {
+    menuPointer += 1;
+    delay(300);
   }
 
-  if (currentTime - previousTime_2 >= eventTime_2_Scan) {
+  if (rState == LOW) {
+    displayState = menuPointer + 1;
+    Serial.print(displayState);
+    delay(300);
+  }
+}
+
+void displayMenu() {
+  for (int i = 0; i < 3; i++) {
+    if (menuPointer == i) {
+      char buf[2048];
+      const char *pretext = "> ";
+      const char *text = options[i];
+      strcpy(buf, pretext);
+      strcat(buf, text);
+      display.drawString(10, 10 + (12 * i), buf);
+    } else {
+      display.drawString(10, 10 + (12 * i), options[i]);
+    }
+  }
+  display.drawLine(0, 48, 127, 48);
+}
+
+void printMenuScreen() {
+  display.drawString(40, 0, "2.4GHz Packet Analyzer");
+  displayMenu();
+  display.drawString(18, 50, "By Angelina Tsuboi");
+}
+
+void loop()
+{
+  if (displayState == 0) {
+    menuButtonPress();
+    display.clear();
+    printMenuScreen();
+    display.display();
+    delay(0);
+  } else if (displayState == 1) {
     // Clear measurement values
     memset(values, 0, sizeof(values));
 
@@ -187,7 +248,6 @@ void loop()
     }
     Serial.println();
     yield();
-    previousTime_2 = currentTime;
   }
 }
 
