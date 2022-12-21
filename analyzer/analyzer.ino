@@ -8,7 +8,8 @@
 //
 #define CSN D8
 #define CE D3
-#define BUTTON_PIN D0
+#define BUTTON_INPUT D4
+// TX = 1
 
 RF24 radio(CE, CSN);
 SH1106Wire display(0x3C, D2, D1);
@@ -83,14 +84,6 @@ void setup(void)
   delay(200);
   Serial.println(); Serial.println();
 
-  //  Set up OLED
-  display.init();
-  display.flipScreenVertically();
-  display.setFont(ArialMT_Plain_10);
-  display.drawString(5, 15, "2.4 GHz Channel Analyzer");
-  display.drawString(17, 45, "By Angelina Tsuboi");
-  display.display();
-
   // Setup and configure rf radio
   radio.begin();
   radio.setAutoAck(false);
@@ -102,7 +95,15 @@ void setup(void)
   delayMicroseconds(130);
   radio.stopListening();
 
-  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_INPUT, INPUT_PULLUP);
+
+   //  Set up OLED
+  display.init();
+  display.flipScreenVertically();
+  display.setFont(ArialMT_Plain_10);
+  display.drawString(5, 15, "2.4 GHz Channel Analyzer");
+  display.drawString(17, 38, "By Angelina Tsuboi");
+  display.display();
 
   // Display Radio Configuration
   getradiodetails();
@@ -132,17 +133,12 @@ void setup(void)
 void loop()
 {
   unsigned long currentTime = millis();
-
-  if (currentTime - previousTime_1 >= eventTime_1_Button) {
-    if (digitalRead(BUTTON_PIN) == HIGH) {
-      Serial.println("HELLO");
-      delay(10);
-    }
-    Serial.println(digitalRead(BUTTON_PIN));
-    delay(100);
-    previousTime_1 = currentTime;
-  }
-
+  int buttonVal = digitalRead(BUTTON_INPUT); // HIGH = open, LOW = pressed
+   Serial.println(buttonVal);
+   if(buttonVal == LOW) {
+    Serial.println("pressed!");
+   }
+   delay(100);
 
   // Clear measurement values
   memset(values, 0, sizeof(values));
