@@ -9,14 +9,16 @@
 #define CSN D8
 #define CE D3
 #define BUTTON_INPUT D4
-// TX = 1
+#define BACK_BUTTON_INPUT D0
 
 RF24 radio(CE, CSN);
 SH1106Wire display(0x3C, D2, D1);
 
-const unsigned long eventTime_1_Button = 100;
+const unsigned long eventTime_1_Button = 0;
+const unsigned long eventTime_2_Scan = 10;
 
 unsigned long previousTime_1 = 0;
+unsigned long previousTime_2 = 0;
 
 //
 // Define Channel Addresses
@@ -97,7 +99,7 @@ void setup(void)
 
   pinMode(BUTTON_INPUT, INPUT_PULLUP);
 
-   //  Set up OLED
+  //  Set up OLED
   display.init();
   display.flipScreenVertically();
   display.setFont(ArialMT_Plain_10);
@@ -133,48 +135,60 @@ void setup(void)
 void loop()
 {
   unsigned long currentTime = millis();
-  int buttonVal = digitalRead(BUTTON_INPUT); // HIGH = open, LOW = pressed
-   Serial.println(buttonVal);
-   if(buttonVal == LOW) {
-    Serial.println("pressed!");
-   }
-   delay(100);
 
-  // Clear measurement values
-  memset(values, 0, sizeof(values));
-
-  // Scan all channels num_reps times
-  int rep_counter = num_reps;
-  while (rep_counter--)
-  {
-    int i = num_channels;
-    while (i--)
-    {
-      // Select this channel
-      radio.setChannel(i);
-
-      // Listen for a little
-      radio.startListening();
-      delayMicroseconds(130);
-      radio.stopListening();
-
-      // Did we get a carrier?
-      if ( radio.testCarrier() ) {
-        ++values[i];
-      }
+  if (currentTime - previousTime_1 >= eventTime_1_Button) {
+    int buttonVal = digitalRead(BUTTON_INPUT); // HIGH = open, LOW = pressed
+    int backButtonVal = digitalRead(BACK_BUTTON_INPUT); 
+    Serial.println(buttonVal);
+    if (buttonVal == LOW) {
+      Serial.println("pressed!");
+      delay(100);
     }
-    yield();
+    if (backButtonVal == LOW) {
+      Serial.println("pressed 2!");
+      delay(100);
+    }
+    previousTime_1 = currentTime;
   }
 
-  // Print out channel measurements, clamped to a single hex digit
-  int i = 0;
-  while ( i < num_channels )
-  {
-    Serial.print(min(zeroVal, values[i]));
-    ++i;
+  if (currentTime - previousTime_2 >= eventTime_2_Scan) {
+    // Clear measurement values
+    memset(values, 0, sizeof(values));
+
+    // Scan all channels num_reps times
+    int rep_counter = num_reps;
+    while (rep_counter--)
+    {
+      int i = num_channels;
+      while (i--)
+      {
+        // Select this channel
+        radio.setChannel(i);
+
+        // Listen for a little
+        radio.startListening();
+        delayMicroseconds(130);
+        radio.stopListening();
+
+        // Did we get a carrier?
+        if ( radio.testCarrier() ) {
+          ++values[i];
+        }
+      }
+      yield();
+    }
+
+    // Print out channel measurements, clamped to a single hex digit
+    int i = 0;
+    while ( i < num_channels )
+    {
+      Serial.print(min(zeroVal, values[i]));
+      ++i;
+    }
+    Serial.println();
+    yield();
+    previousTime_2 = currentTime;
   }
-  Serial.println();
-  yield();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
