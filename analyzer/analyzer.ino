@@ -105,6 +105,12 @@ uint8_t zeroVal = 0xf;
 uint8_t addr_width = 5;
 bool p_variant = false;
 
+// WiFi Scanner Config
+const int RSSI_MAX =-50;// define maximum strength of signal in dBm
+const int RSSI_MIN =-100;// define minimum strength of signal in dBm
+
+const int displayEnc=1;// set to 1 to dispaly Encryption or 0 not to display
+
 //
 // Setup
 //
@@ -166,6 +172,7 @@ void setup(void)
 void buttonInput() {
   int buttonVal = digitalRead(BUTTON_INPUT); // HIGH = open, LOW = pressed
   int backButtonVal = digitalRead(BACK_BUTTON_INPUT);
+  Serial.println("jlkjk");
   Serial.println(buttonVal);
   if (buttonVal == LOW) {
     Serial.println("pressed!");
@@ -224,12 +231,13 @@ void loop()
     printMenuScreen();
     display.display();
     delay(0);
-  } else if (displayState == 1) {
+  } else if (displayState == 1) { //TODO: either make concurrent processes or restyle menu to be synchronous
     // Clear measurement values
     checkTrafficAnalyzerInput();
+    // buttonInput();
     memset(values, 0, sizeof(values));
 
-    // Scan all channels num_reps times
+// Scan all channels num_reps times
     int rep_counter = num_reps;
     while (rep_counter--)
     {
@@ -237,7 +245,12 @@ void loop()
       while (i--)
       {
         // Select this channel
-        radio.setChannel(i);
+        if(selectedChannel == 0) {
+          radio.setChannel(i);
+        } else {
+          radio.setChannel(selectedChannel + 1);
+        }
+        
 
         // Listen for a little
         radio.startListening();
@@ -249,33 +262,40 @@ void loop()
           ++values[i];
         }
       }
+      checkTrafficAnalyzerInput();
       yield();
     }
 
     outputChannels(); // grey map
 
     // Print out channel measurements, clamped to a single hex digit
-    //    int i = 0;
-    //    while ( i < num_channels )
-    //    {
-    //      Serial.print(min(zeroVal, values[i]));
-    //      ++i;
-    //    }
-    //    Serial.println();
-    //    yield();
-  }
+//        int i = 0;
+//        while ( i < num_channels )
+//        {
+//          Serial.print(min(zeroVal, values[i]));
+//          ++i;
+//        }
+//        Serial.println();
+//        yield();
+  } else if (displayState == 2) {
+      
+   }
 }
 
 void checkTrafficAnalyzerInput() {
+  pinMode(BACK_BUTTON_INPUT, INPUT_PULLUP);
   int increase = digitalRead(BUTTON_INPUT);
   int back = digitalRead(BACK_BUTTON_INPUT);
 
-  if (back == LOW) {
-    displayState = 0;
-    delay(100); 
-  }
+//  Serial.println("BACK Input");
+//  Serial.println(back);
+//  if (back == LOW) {
+//    displayState = 0;
+//    delay(100); 
+//  }
 
   if (increase == LOW) {
+    Serial.print("Increase Channel");
     selectedChannel++;
     if (selectedChannel >= 13) selectedChannel = 0;
     delay(1);
@@ -335,10 +355,11 @@ void outputChannels()
 {
   display.clear();
   updateTrafficAnalyzerToolbar();
+  checkTrafficAnalyzerInput();
 
   for (int i = 0; i < 64; i++) {
     Serial.println(values[i]);
-    display.fillRect((1 + (i * 2)), (60 - (values[i] * 5)), 2, (values[i] * 5) + 5); // adjust scaling as needed
+    display.fillRect((1 + (i * 2)), (60 - (values[i] * 5)), 2, (values[i] * 5) + 7); // adjust scaling as needed
     display.print(60 - values[i]);
   }
   display.display();
