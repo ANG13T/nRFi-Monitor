@@ -1,3 +1,5 @@
+
+#include <Adafruit_GFX.h>
 #include <SPI.h>
 #include "nRF24L01.h"
 #include "RF24.h"
@@ -27,9 +29,9 @@ int rState = 0;
 int menuPointer = 0;
 
 const char *options[3] = {
-  "2.4GHz Scanner",
-  "2.4GHz Channel Analyzer",
-  "WiFi Scanner"
+  "Traffic Analyzer",
+  "WiFi Scanner",
+  "Vicinity Detector"
 };
 
 
@@ -186,22 +188,23 @@ void displayMenu() {
   for (int i = 0; i < 3; i++) {
     if (menuPointer == i) {
       char buf[2048];
-      const char *pretext = "> ";
-      const char *text = options[i];
-      strcpy(buf, pretext);
-      strcat(buf, text);
-      display.drawString(10, 10 + (12 * i), buf);
+//      const char *pretext = "> ";
+//      const char *text = options[i];
+//      strcpy(buf, pretext);
+//      strcat(buf, text);
+      display.fillRect(0, 16 + (17 * i), 127, 13);
+      display.setColor(BLACK); 
+      display.drawString(28, 16 + (17 * i), options[i]);
+      display.setColor(WHITE); 
     } else {
-      display.drawString(10, 10 + (12 * i), options[i]);
+      display.drawString(28, 16 + (17 * i), options[i]);
     }
   }
-  display.drawLine(0, 48, 127, 48);
 }
 
 void printMenuScreen() {
-  display.drawString(40, 0, "2.4GHz Packet Analyzer");
+  display.drawString(35, 0, "n-RFi Monitor");
   displayMenu();
-  display.drawString(18, 50, "By Angelina Tsuboi");
 }
 
 void loop()
