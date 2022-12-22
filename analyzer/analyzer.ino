@@ -42,10 +42,13 @@ const char *options[3] = {
   "Vicinity Detector"
 };
 
+
 // Greyscale
 char grey[] = " 123456789";
 
 int displayState = 0;
+
+int selectedChannel = 0;
 
 //
 // Define Channel Addresses
@@ -223,7 +226,7 @@ void loop()
     delay(0);
   } else if (displayState == 1) {
     // Clear measurement values
-    Serial.println("hi");
+    checkTrafficAnalyzerInput();
     memset(values, 0, sizeof(values));
 
     // Scan all channels num_reps times
@@ -263,6 +266,33 @@ void loop()
   }
 }
 
+void checkTrafficAnalyzerInput() {
+  int increase = digitalRead(BUTTON_INPUT);
+
+  
+  if (increase == LOW) {    
+     selectedChannel++;  
+    
+   if (channels < 13) selectedChannel=channels;
+    else selectedChannel = 0;
+              
+    delay(1);     
+  }
+}
+
+void updateTrafficAnalyzerToolbar() {
+  display.drawLine(0, 12, 127, 12);
+  display.drawLine(20, 0, 20, 12);
+  display.fillTriangle(8, 5, 11, 2, 11, 8);
+  display.drawLine(107, 0, 107, 12);
+  display.drawString(116, 0, "+");
+  //display.drawString(45, 0, (String)channelOptions[selectedChannel]);
+  if (selectedChannel == 0) {
+    display.drawString(45, 0, "ALL");
+  } else {
+    display.drawString(45, 0, "Channel: " + String(selectedChannel));
+  }
+}
 
 // greyscale stuff
 void outputChannelsGrey(void)
@@ -302,15 +332,16 @@ void outputChannelsGrey(void)
 void outputChannels()
 {
  display.clear();
+ updateTrafficAnalyzerToolbar();
   display.drawLine(0, 50, 127, 50);
 
   for (int i = 0; i < 64; i++) {
     Serial.println(values[i]);
-  display.fillRect((1 + (i * 2)), (20 - (values[i] * 4)), 2, (values[i] * 4) + 5); 
+  display.fillRect((1 + (i * 2)), (30 - (values[i] * 4)), 2, (values[i] * 4) + 5); 
   // display.print("channel: " + String(channels + 1));
 
   //display.setCursor(80, 0); 
-  display.print(20 - values[i]);
+  display.print(30 - values[i]);
   }
   display.display();
 }
