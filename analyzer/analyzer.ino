@@ -301,105 +301,17 @@ void outputChannelsGrey(void)
 
 void outputChannels()
 {
- int norm = 0;
- 
- for( int i=0 ; i<num_channels ; i++)
-   if( values[i]>norm ) norm = values[i];
-   
- Serial.print('|');
- for( int i=0 ; i<num_channels ; i++)
- {
-   int pos;
-   
-   if( norm!=0 ) pos = (values[i]*10)/norm;
-   else          pos = 0;
-   
-   if( pos==0 && values[i]>0 ) pos++;
-   
-   if( pos>9 ) pos = 9;
- 
-   Serial.print(grey[pos]);
-   values[i] = 0;
- }
- 
- Serial.print("| ");
- Serial.println(norm);
- 
-  display.drawLine(0, 0, 0, 32);
-  display.drawLine(80, 0, 80, 32);
- 
-  for (count = 0; count < 40; count += 10)
-  {
-    display.drawLine(80, count, 75, count);
-    display.drawLine(0, count, 5, count);
+ display.clear();
+  display.drawLine(0, 50, 127, 50);
+
+  for (int i = 0; i < 64; i++) {
+  display.fillRect((1 + (i * 2)), (30 - values[i]), 2, (values[i] * 4) + 5); 
+  // display.print("channel: " + String(channels + 1));
+
+  //display.setCursor(80, 0); 
+  display.print(20 - values[i]);
   }
- 
-  for (count = 10; count < 80; count += 10)
-  {
-    display.drawPixel(count, 0);
-    display.drawPixel(count, 31);
-  }
- 
-  
-  drawHeight = map(norm, 0, 200, 0, 32 );
-  sensorArray[0] = drawHeight;
- 
-  for (count = 1; count <= 80; count++ )
-  {
-    if (filled == 'D' || filled == 'd')
-    {
-      if (drawDirection == 'L' || drawDirection == 'l')
-      {
-        display.drawPixel(count, 32 - sensorArray[count - 1]);
-      }
-      else //else, draw dots from right to left
-      {
-        display.drawPixel(80 - count, 32 - sensorArray[count - 1]);
-      }
-    }
- 
- 
-    
- 
-    else
-    {
-      if (drawDirection == 'L' || drawDirection == 'l')
-      {
-        if (slope == 'W' || slope == 'w')
-        {
-          display.drawLine(count, 32, count, 32 - sensorArray[count - 1]);
-        }
-        else
-        {
-          display.drawLine(count, 1, count, 32 - sensorArray[count - 1]);
- 
-        }
-      }
- 
- 
- 
-      else
-      {
-        if (slope == 'W' || slope == 'w')
-        {
-          display.drawLine(80 - count, 32, 80 - count, 32 - sensorArray[count - 1]);
-        }
-        else
-        {
-          display.drawLine(80 - count, 1, 80 - count, 32 - sensorArray[count - 1]);
-        }
-      }
-    }
-  }
- 
- // drawAxises();
-  display.display(); 
-  display.clearDisplay(); 
- 
-  for (count = 80; count >= 2; count--) 
-  {
-    sensorArray[count - 1] = sensorArray[count - 2];
-  }
+  display.display();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
