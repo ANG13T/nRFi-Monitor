@@ -42,10 +42,17 @@ const char *options[3] = {
 };
 
 
+const char *scannerOptions[3] = {
+  "Automatic",
+  "Start Scan",
+  "Back"
+};
+
 // Greyscale
 char grey[] = " 123456789";
 
 int displayState = 0;
+bool wifiScanStarted = false;
 
 int selectedChannel = 0;
 
@@ -187,6 +194,21 @@ void buttonInput() {
   }
 }
 
+void scannerMenuInput () {
+  int buttonVal = digitalRead(BUTTON_INPUT); // HIGH = open, LOW = pressed
+  int backButtonVal = digitalRead(BACK_BUTTON_INPUT);
+  
+  if (buttonVal == LOW) {
+    //  wifiScanStarted 
+    Serial.println("pressed!");
+    delay(100);
+  }
+  if (backButtonVal == LOW) {
+    Serial.println("pressed 2!");
+    delay(100);
+  }
+}
+
 void menuButtonPress() {
   lState = digitalRead(BUTTON_INPUT);
   rState = digitalRead(BACK_BUTTON_INPUT);
@@ -217,6 +239,21 @@ void displayMenu() {
       display.setColor(WHITE);
     } else {
       display.drawString(28, 16 + (17 * i), options[i]);
+    }
+  }
+}
+
+void displayScannerMenu() {
+  
+  for (int i = 0; i < 3; i++) {
+    if (menuPointer == i) {
+      char buf[2048];
+      display.fillRect(0, 16 + (17 * i), 127, 13);
+      display.setColor(BLACK);
+      display.drawString(28, 16 + (17 * i), scannerOptions[i]);
+      display.setColor(WHITE);
+    } else {
+      display.drawString(28, 16 + (17 * i), scannerOptions[i]);
     }
   }
 }
@@ -280,8 +317,17 @@ void loop()
     //        }
     //        Serial.println();
     //        yield();
-  } else if (displayState == 2) {
-    Serial.println("Wifi scan started");
+  } else if (displayState == 2) { // TODO: make automatic and manual version, [AUTOMATIC | MANUAL] [START SCAN] [BACK]
+
+    displayScannerMenu();
+    
+   
+  }
+}
+
+
+void scanWiFi() {
+   Serial.println("Wifi scan started");
 
     // WiFi.scanNetworks will return the number of networks found
     int n = WiFi.scanNetworks();
@@ -328,8 +374,7 @@ void loop()
 
     // Wait a bit before scanning again
     delay(5000);
-    WiFi.scanDelete();
-  }
+    WiFi.scanDelete();  
 }
 
 void checkTrafficAnalyzerInput() {
