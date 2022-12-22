@@ -305,7 +305,8 @@ void outputChannels()
   display.drawLine(0, 50, 127, 50);
 
   for (int i = 0; i < 64; i++) {
-  display.fillRect((1 + (i * 2)), (30 - values[i]), 2, (values[i] * 4) + 5); 
+    Serial.println(values[i]);
+  display.fillRect((1 + (i * 2)), (20 - (values[i] * 4)), 2, (values[i] * 4) + 5); 
   // display.print("channel: " + String(channels + 1));
 
   //display.setCursor(80, 0); 
