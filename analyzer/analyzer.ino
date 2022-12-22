@@ -24,6 +24,14 @@ const unsigned long eventTime_2_Scan = 10;
 unsigned long previousTime_1 = 0;
 unsigned long previousTime_2 = 0;
 
+byte count;
+byte sensorArray[128];
+byte drawHeight;
+ 
+char filled = 'F'; 
+char drawDirection = 'R'; 
+char slope = 'W'; 
+
 int lState = 0;
 int rState = 0;
 int menuPointer = 0;
@@ -34,6 +42,8 @@ const char *options[3] = {
   "Vicinity Detector"
 };
 
+// Greyscale
+char grey[] = " 123456789";
 
 int displayState = 0;
 
@@ -188,10 +198,6 @@ void displayMenu() {
   for (int i = 0; i < 3; i++) {
     if (menuPointer == i) {
       char buf[2048];
-//      const char *pretext = "> ";
-//      const char *text = options[i];
-//      strcpy(buf, pretext);
-//      strcat(buf, text);
       display.fillRect(0, 16 + (17 * i), 127, 13);
       display.setColor(BLACK); 
       display.drawString(28, 16 + (17 * i), options[i]);
@@ -217,6 +223,7 @@ void loop()
     delay(0);
   } else if (displayState == 1) {
     // Clear measurement values
+    Serial.println("hi");
     memset(values, 0, sizeof(values));
 
     // Scan all channels num_reps times
@@ -242,15 +249,156 @@ void loop()
       yield();
     }
 
+    outputChannels(); // grey map
+
     // Print out channel measurements, clamped to a single hex digit
-    int i = 0;
-    while ( i < num_channels )
+//    int i = 0;
+//    while ( i < num_channels )
+//    {
+//      Serial.print(min(zeroVal, values[i]));
+//      ++i;
+//    }
+//    Serial.println();
+//    yield();
+  }
+}
+
+
+// greyscale stuff
+void outputChannelsGrey(void)
+{
+  int norm = 0;
+  
+  // find the maximal count in channel array
+  for( int i=0 ; i<num_channels ; i++)
+    if( values[i]>norm ) norm = values[i];
+    
+  // now output the data
+  Serial.print('|');
+  for( int i=0 ; i<num_channels ; i++)
+  {
+    int pos;
+    
+    // calculate grey value position
+    if( norm!=0 ) pos = (values[i]*10)/norm;
+    else          pos = 0;
+    
+    // boost low values
+    if( pos==0 && values[i]>0 ) pos++;
+    
+    // clamp large values
+    if( pos>9 ) pos = 9;
+   
+    // print it out
+    Serial.print(grey[pos]);
+    values[i] = 0;
+  }
+  
+  // indicate overall power
+  Serial.print("| ");
+  Serial.println(norm);
+}
+
+void outputChannels()
+{
+ int norm = 0;
+ 
+ for( int i=0 ; i<num_channels ; i++)
+   if( values[i]>norm ) norm = values[i];
+   
+ Serial.print('|');
+ for( int i=0 ; i<num_channels ; i++)
+ {
+   int pos;
+   
+   if( norm!=0 ) pos = (values[i]*10)/norm;
+   else          pos = 0;
+   
+   if( pos==0 && values[i]>0 ) pos++;
+   
+   if( pos>9 ) pos = 9;
+ 
+   Serial.print(grey[pos]);
+   values[i] = 0;
+ }
+ 
+ Serial.print("| ");
+ Serial.println(norm);
+ 
+  display.drawLine(0, 0, 0, 32);
+  display.drawLine(80, 0, 80, 32);
+ 
+  for (count = 0; count < 40; count += 10)
+  {
+    display.drawLine(80, count, 75, count);
+    display.drawLine(0, count, 5, count);
+  }
+ 
+  for (count = 10; count < 80; count += 10)
+  {
+    display.drawPixel(count, 0);
+    display.drawPixel(count, 31);
+  }
+ 
+  
+  drawHeight = map(norm, 0, 200, 0, 32 );
+  sensorArray[0] = drawHeight;
+ 
+  for (count = 1; count <= 80; count++ )
+  {
+    if (filled == 'D' || filled == 'd')
     {
-      Serial.print(min(zeroVal, values[i]));
-      ++i;
+      if (drawDirection == 'L' || drawDirection == 'l')
+      {
+        display.drawPixel(count, 32 - sensorArray[count - 1]);
+      }
+      else //else, draw dots from right to left
+      {
+        display.drawPixel(80 - count, 32 - sensorArray[count - 1]);
+      }
     }
-    Serial.println();
-    yield();
+ 
+ 
+    
+ 
+    else
+    {
+      if (drawDirection == 'L' || drawDirection == 'l')
+      {
+        if (slope == 'W' || slope == 'w')
+        {
+          display.drawLine(count, 32, count, 32 - sensorArray[count - 1]);
+        }
+        else
+        {
+          display.drawLine(count, 1, count, 32 - sensorArray[count - 1]);
+ 
+        }
+      }
+ 
+ 
+ 
+      else
+      {
+        if (slope == 'W' || slope == 'w')
+        {
+          display.drawLine(80 - count, 32, 80 - count, 32 - sensorArray[count - 1]);
+        }
+        else
+        {
+          display.drawLine(80 - count, 1, 80 - count, 32 - sensorArray[count - 1]);
+        }
+      }
+    }
+  }
+ 
+ // drawAxises();
+  display.display(); 
+  display.clearDisplay(); 
+ 
+  for (count = 80; count >= 2; count--) 
+  {
+    sensorArray[count - 1] = sensorArray[count - 2];
   }
 }
 
