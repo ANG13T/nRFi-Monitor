@@ -34,6 +34,7 @@ char slope = 'W';
 int lState = 0;
 int rState = 0;
 int menuPointer = 0;
+int scannerMenuPointer = 0;
 
 const char *options[3] = {
   "Traffic Analyzer",
@@ -195,17 +196,23 @@ void buttonInput() {
 }
 
 void scannerMenuInput () {
-  int buttonVal = digitalRead(BUTTON_INPUT); // HIGH = open, LOW = pressed
-  int backButtonVal = digitalRead(BACK_BUTTON_INPUT);
-  
-  if (buttonVal == LOW) {
-    //  wifiScanStarted 
-    Serial.println("pressed!");
-    delay(100);
+  lState = digitalRead(BUTTON_INPUT);
+  rState = digitalRead(BACK_BUTTON_INPUT);
+
+  // uni-directional menu scroller (left = navigation, right = selection)
+  if (lState == LOW && scannerMenuPointer == 2) {
+    scannerMenuPointer = 0;
+    delay(300);
+  } else if (lState == LOW) {
+    scannerMenuPointer += 1;
+    delay(300);
   }
-  if (backButtonVal == LOW) {
-    Serial.println("pressed 2!");
-    delay(100);
+
+  if (rState == LOW) {
+//    TODO: SCAN
+//    displayState = menuPointer + 1;
+//    Serial.print(displayState);
+    delay(300);
   }
 }
 
@@ -244,18 +251,22 @@ void displayMenu() {
 }
 
 void displayScannerMenu() {
-  
+  display.clear();
+  display.drawString(33, 0, "WiFi Scanner");
+  display.drawLine(0, 12, 127, 12);
   for (int i = 0; i < 3; i++) {
-    if (menuPointer == i) {
+    if (scannerMenuPointer == i) {
       char buf[2048];
       display.fillRect(0, 16 + (17 * i), 127, 13);
       display.setColor(BLACK);
-      display.drawString(28, 16 + (17 * i), scannerOptions[i]);
+      display.drawString(33, 16 + (17 * i), scannerOptions[i]);
       display.setColor(WHITE);
     } else {
-      display.drawString(28, 16 + (17 * i), scannerOptions[i]);
+      display.drawString(33, 16 + (17 * i), scannerOptions[i]);
     }
   }
+  display.display();
+  delay(0);
 }
 
 void printMenuScreen() {
@@ -318,7 +329,7 @@ void loop()
     //        Serial.println();
     //        yield();
   } else if (displayState == 2) { // TODO: make automatic and manual version, [AUTOMATIC | MANUAL] [START SCAN] [BACK]
-
+    scannerMenuInput();
     displayScannerMenu();
     
    
