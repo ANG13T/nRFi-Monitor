@@ -27,10 +27,10 @@ unsigned long previousTime_2 = 0;
 byte count;
 byte sensorArray[128];
 byte drawHeight;
- 
-char filled = 'F'; 
-char drawDirection = 'R'; 
-char slope = 'W'; 
+
+char filled = 'F';
+char drawDirection = 'R';
+char slope = 'W';
 
 int lState = 0;
 int rState = 0;
@@ -202,9 +202,9 @@ void displayMenu() {
     if (menuPointer == i) {
       char buf[2048];
       display.fillRect(0, 16 + (17 * i), 127, 13);
-      display.setColor(BLACK); 
+      display.setColor(BLACK);
       display.drawString(28, 16 + (17 * i), options[i]);
-      display.setColor(WHITE); 
+      display.setColor(WHITE);
     } else {
       display.drawString(28, 16 + (17 * i), options[i]);
     }
@@ -255,28 +255,25 @@ void loop()
     outputChannels(); // grey map
 
     // Print out channel measurements, clamped to a single hex digit
-//    int i = 0;
-//    while ( i < num_channels )
-//    {
-//      Serial.print(min(zeroVal, values[i]));
-//      ++i;
-//    }
-//    Serial.println();
-//    yield();
+    //    int i = 0;
+    //    while ( i < num_channels )
+    //    {
+    //      Serial.print(min(zeroVal, values[i]));
+    //      ++i;
+    //    }
+    //    Serial.println();
+    //    yield();
   }
 }
 
 void checkTrafficAnalyzerInput() {
   int increase = digitalRead(BUTTON_INPUT);
 
-  
-  if (increase == LOW) {    
-     selectedChannel++;  
-    
-   if (channels < 13) selectedChannel=channels;
-    else selectedChannel = 0;
-              
-    delay(1);     
+
+  if (increase == LOW) {
+    selectedChannel++;
+    if (selectedChannel >= 13) selectedChannel = 0;
+    delay(1);
   }
 }
 
@@ -288,7 +285,7 @@ void updateTrafficAnalyzerToolbar() {
   display.drawString(116, 0, "+");
   //display.drawString(45, 0, (String)channelOptions[selectedChannel]);
   if (selectedChannel == 0) {
-    display.drawString(45, 0, "ALL");
+    display.drawString(52, 0, "ALL");
   } else {
     display.drawString(45, 0, "Channel: " + String(selectedChannel));
   }
@@ -298,32 +295,32 @@ void updateTrafficAnalyzerToolbar() {
 void outputChannelsGrey(void)
 {
   int norm = 0;
-  
+
   // find the maximal count in channel array
-  for( int i=0 ; i<num_channels ; i++)
-    if( values[i]>norm ) norm = values[i];
-    
+  for ( int i = 0 ; i < num_channels ; i++)
+    if ( values[i] > norm ) norm = values[i];
+
   // now output the data
   Serial.print('|');
-  for( int i=0 ; i<num_channels ; i++)
+  for ( int i = 0 ; i < num_channels ; i++)
   {
     int pos;
-    
+
     // calculate grey value position
-    if( norm!=0 ) pos = (values[i]*10)/norm;
+    if ( norm != 0 ) pos = (values[i] * 10) / norm;
     else          pos = 0;
-    
+
     // boost low values
-    if( pos==0 && values[i]>0 ) pos++;
-    
+    if ( pos == 0 && values[i] > 0 ) pos++;
+
     // clamp large values
-    if( pos>9 ) pos = 9;
-   
+    if ( pos > 9 ) pos = 9;
+
     // print it out
     Serial.print(grey[pos]);
     values[i] = 0;
   }
-  
+
   // indicate overall power
   Serial.print("| ");
   Serial.println(norm);
@@ -331,17 +328,13 @@ void outputChannelsGrey(void)
 
 void outputChannels()
 {
- display.clear();
- updateTrafficAnalyzerToolbar();
-  display.drawLine(0, 50, 127, 50);
+  display.clear();
+  updateTrafficAnalyzerToolbar();
 
   for (int i = 0; i < 64; i++) {
     Serial.println(values[i]);
-  display.fillRect((1 + (i * 2)), (30 - (values[i] * 4)), 2, (values[i] * 4) + 5); 
-  // display.print("channel: " + String(channels + 1));
-
-  //display.setCursor(80, 0); 
-  display.print(30 - values[i]);
+    display.fillRect((1 + (i * 2)), (40 - (values[i] * 4)), 2, (values[i] * 4) + 5);
+    display.print(40 - values[i]);
   }
   display.display();
 }
