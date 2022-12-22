@@ -268,7 +268,12 @@ void loop()
 
 void checkTrafficAnalyzerInput() {
   int increase = digitalRead(BUTTON_INPUT);
+  int back = digitalRead(BACK_BUTTON_INPUT);
 
+  if (back == LOW) {
+    displayState = 0;
+    delay(100); 
+  }
 
   if (increase == LOW) {
     selectedChannel++;
@@ -285,7 +290,7 @@ void updateTrafficAnalyzerToolbar() {
   display.drawString(116, 0, "+");
   //display.drawString(45, 0, (String)channelOptions[selectedChannel]);
   if (selectedChannel == 0) {
-    display.drawString(52, 0, "ALL");
+    display.drawString(55, 0, "ALL");
   } else {
     display.drawString(45, 0, "Channel: " + String(selectedChannel));
   }
@@ -333,8 +338,8 @@ void outputChannels()
 
   for (int i = 0; i < 64; i++) {
     Serial.println(values[i]);
-    display.fillRect((1 + (i * 2)), (40 - (values[i] * 4)), 2, (values[i] * 4) + 5);
-    display.print(40 - values[i]);
+    display.fillRect((1 + (i * 2)), (60 - (values[i] * 5)), 2, (values[i] * 5) + 5); // adjust scaling as needed
+    display.print(60 - values[i]);
   }
   display.display();
 }
