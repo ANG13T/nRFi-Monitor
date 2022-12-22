@@ -1,9 +1,8 @@
-
-#include <Adafruit_GFX.h>
 #include <SPI.h>
 #include "nRF24L01.h"
 #include "RF24.h"
 #include "SH1106Wire.h"
+#include <ESP8266WiFi.h>
 
 // WiFi and Device Presence Analysis Toolkit with the NRF24
 
@@ -106,10 +105,10 @@ uint8_t addr_width = 5;
 bool p_variant = false;
 
 // WiFi Scanner Config
-const int RSSI_MAX =-50;// define maximum strength of signal in dBm
-const int RSSI_MIN =-100;// define minimum strength of signal in dBm
+const int RSSI_MAX = -50; // define maximum strength of signal in dBm
+const int RSSI_MIN = -100; // define minimum strength of signal in dBm
 
-const int displayEnc=1;// set to 1 to dispaly Encryption or 0 not to display
+const int displayEnc = 1; // set to 1 to dispaly Encryption or 0 not to display
 
 //
 // Setup
@@ -163,6 +162,10 @@ void setup(void)
     ++i;
   }
   Serial.println();
+
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(2000);
 }
 
 //
@@ -237,7 +240,7 @@ void loop()
     // buttonInput();
     memset(values, 0, sizeof(values));
 
-// Scan all channels num_reps times
+    // Scan all channels num_reps times
     int rep_counter = num_reps;
     while (rep_counter--)
     {
@@ -245,12 +248,12 @@ void loop()
       while (i--)
       {
         // Select this channel
-        if(selectedChannel == 0) {
+        if (selectedChannel == 0) {
           radio.setChannel(i);
         } else {
           radio.setChannel(selectedChannel + 1);
         }
-        
+
 
         // Listen for a little
         radio.startListening();
@@ -269,17 +272,64 @@ void loop()
     outputChannels(); // grey map
 
     // Print out channel measurements, clamped to a single hex digit
-//        int i = 0;
-//        while ( i < num_channels )
-//        {
-//          Serial.print(min(zeroVal, values[i]));
-//          ++i;
-//        }
-//        Serial.println();
-//        yield();
+    //        int i = 0;
+    //        while ( i < num_channels )
+    //        {
+    //          Serial.print(min(zeroVal, values[i]));
+    //          ++i;
+    //        }
+    //        Serial.println();
+    //        yield();
   } else if (displayState == 2) {
-      
-   }
+    Serial.println("Wifi scan started");
+
+    // WiFi.scanNetworks will return the number of networks found
+    int n = WiFi.scanNetworks();
+    Serial.println("Wifi scan ended");
+    if (n == 0) {
+      Serial.println("no networks found");
+    } else {
+      Serial.print(n);
+      Serial.println(" networks found");
+      for (int i = 0; i < n; ++i) {
+        // Print SSID and RSSI for each network found
+        Serial.print(i + 1);
+        Serial.print(") ");
+        Serial.print(WiFi.SSID(i));// SSID
+
+        Serial.print(" ch:");
+        Serial.print(WiFi.channel(i));// display channel
+        Serial.print(" ");
+
+        Serial.print(WiFi.RSSI(i));//Signal strength in dBm
+        Serial.print("dBm (");
+
+
+        Serial.print(dBmtoPercentage(WiFi.RSSI(i)));//Signal strength in %
+        Serial.print("% )");
+
+        Serial.print(" MAC:");
+        Serial.print(WiFi.BSSIDstr(i)  );//MAC address  (Basic Service Set Identification)
+
+
+        if (WiFi.isHidden(i) ) {
+          Serial.print(" <<Hidden>> ");
+        }
+        if (displayEnc)
+        {
+          Serial.print(" Encryption:");
+          Serial.println(encType(i));
+        }// if displayEnc
+
+        delay(10);
+      }
+    }
+    Serial.println("");
+
+    // Wait a bit before scanning again
+    delay(5000);
+    WiFi.scanDelete();
+  }
 }
 
 void checkTrafficAnalyzerInput() {
@@ -287,12 +337,12 @@ void checkTrafficAnalyzerInput() {
   int increase = digitalRead(BUTTON_INPUT);
   int back = digitalRead(BACK_BUTTON_INPUT);
 
-//  Serial.println("BACK Input");
-//  Serial.println(back);
-//  if (back == LOW) {
-//    displayState = 0;
-//    delay(100); 
-//  }
+  //  Serial.println("BACK Input");
+  //  Serial.println(back);
+  //  if (back == LOW) {
+  //    displayState = 0;
+  //    delay(100);
+  //  }
 
   if (increase == LOW) {
     Serial.print("Increase Channel");
@@ -315,6 +365,58 @@ void updateTrafficAnalyzerToolbar() {
     display.drawString(45, 0, "Channel: " + String(selectedChannel));
   }
 }
+
+
+// WiFi Scanner methods
+String encType(int id){
+
+String type;
+  if(WiFi.encryptionType(id) == ENC_TYPE_WEP){
+    type=" WEP";
+  }else if(WiFi.encryptionType(id) == ENC_TYPE_TKIP){
+    type="WPA / PSK";    
+  }else if(WiFi.encryptionType(id) == ENC_TYPE_CCMP){
+    type="WPA2 / PSK";    
+  }else if(WiFi.encryptionType(id) == ENC_TYPE_AUTO){
+    type="WPA / WPA2 / PSK";    
+  }else if(WiFi.encryptionType(id) == ENC_TYPE_NONE){
+    type="<<OPEN>>";    
+  }
+  return type;
+//1:  ENC_TYPE_WEP – WEP
+//2 : ENC_TYPE_TKIP – WPA / PSK
+//4 : ENC_TYPE_CCMP – WPA2 / PSK
+//7 : ENC_TYPE_NONE – open network
+//8 : ENC_TYPE_AUTO – WPA / WPA2 / PSK
+}
+
+/*
+ * Written by Ahmad Shamshiri
+  * with lots of research, this sources was used:
+ * https://support.randomsolutions.nl/827069-Best-dBm-Values-for-Wifi 
+ * This is approximate percentage calculation of RSSI
+ * Wifi Signal Strength Calculation
+ * Written Aug 08, 2019 at 21:45 in Ajax, Ontario, Canada
+ */
+
+int dBmtoPercentage(int dBm)
+{
+  int quality;
+    if(dBm <= RSSI_MIN)
+    {
+        quality = 0;
+    }
+    else if(dBm >= RSSI_MAX)
+    {  
+        quality = 100;
+    }
+    else
+    {
+        quality = 2 * (dBm + 100);
+   }
+
+     return quality;
+}//dBmtoPercentage 
 
 // greyscale stuff
 void outputChannelsGrey(void)
