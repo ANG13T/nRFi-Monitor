@@ -230,6 +230,7 @@ void scannerMenuInput () {
         scannerOptions[0] = "Automatic";
       }
     } else if (scannerMenuPointer == 1) {
+      wifiScanComplete = false;
       displayState = 4;
     }
     delay(500);
@@ -242,6 +243,14 @@ void manualScannerInput() {
 
   if (lState == LOW) {
     displayState = 2;
+    delay(300);
+  }
+
+  if(rState == LOW) {
+    wifiScannedIndex++;
+    if (wifiScannedIndex == wifiScannedNumber) {
+      wifiScannedIndex = 0;
+    }
     delay(300);
   }
 }
@@ -453,10 +462,28 @@ void scanWiFi() {
 }
 
 void displayScannedWiFi() { //wifiScannedNumber
+  String bssid;
+  String isHiddenWiFi = "FALSE";
+  if (WiFi.isHidden(wifiScannedIndex)) {
+    isHiddenWiFi = "TRUE";
+  }
+  if (WiFi.BSSIDstr(wifiScannedIndex).length() < 18) {
+      bssid = WiFi.BSSIDstr(wifiScannedIndex);
+    }
+    else if (WiFi.BSSIDstr(wifiScannedIndex).length() > 1) {
+      bssid = WiFi.BSSIDstr(wifiScannedIndex).substring(0, 17 ) + "...";
+    }
+
+
   if (wifiScannedNumber == 0) {
     display.drawString(35, 35, "No Networks Found");
   } else {
-    display.drawString(35, 35, "SSID: " + String(WiFi.SSID(wifiScannedIndex)));
+    display.drawString(0, 14, "SSID: "); display.drawString(30, 14, WiFi.SSID(wifiScannedIndex));
+    display.drawString(0, 22, "CH: "); display.drawString(30, 22, String(WiFi.channel(wifiScannedIndex)));
+    display.drawString(0, 30, "RSSI: "); display.drawString(30, 30, String(WiFi.RSSI(wifiScannedIndex)) + " dBm");
+    display.drawString(0, 38, "RSSI: "); display.drawString(30, 38, String(dBmtoPercentage(WiFi.RSSI(wifiScannedIndex))) + "%");
+    display.drawString(0, 46, "MAC: "); display.drawString(30, 46, bssid);
+    display.drawString(0, 54, "ENC: "); display.drawString(30, 54, encType(wifiScannedIndex));
   }
 }
 
@@ -500,7 +527,7 @@ void updateWifiScannerManualToolbar() {
   display.fillTriangle(8, 5, 11, 2, 11, 8);
   display.drawLine(107, 0, 107, 12);
   display.drawString(116, 0, "+");
-  display.drawString(55, 0, "1 / 13");
+  display.drawString(55, 0, String(wifiScannedIndex) + " / " + String(wifiScannedNumber));
 }
 
 
