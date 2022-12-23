@@ -1,2 +1,48 @@
-# nrf24-packet-analyzer
-2.4Ghz WiFi Traffic Analyzer Toolkit with AP and SSID Tracking Functionality made with the D1 Mini and NRF24
+# n-RFi Monitor
+A 2.4GHz band and WiFi analyzer toolkit made with the D1 Mini and NRF24L01
+
+## Features
+- 2.4 GHz Traffic Analyzer and Channel Filtering
+- WiFi Scanner (Auto and Manual modes)
+- WiFi Vicinity Detector with RSSI Meter
+- Lipo Battery Configuration (WIP)
+- Live updating RSSI Meter (WIP)
+
+## Components
+| Component | Purpose |
+| --- | --- |
+| Wemos D1 Mini | Monitor WiFi data & control components
+| 128x64 OLED (SSH1106) | Give a visual display of Traffic and WiFi data |
+| 2x Push Buttons | Gather user input |
+| NRF24L01 | Get 2.4GHz Traffic Data |
+| 3D Printed Case  | Protect components |
+| 4x 8/32 9.5mm screws  | Hold case together |
+| Lipo Battery 3.7V (optional) | Power |
+| SDPT Switch (optional) | Control Battery |
+| D1 Mini Shield (optional) | Battery Config |
+
+## Hardware Setup
+**128x64 OLED (SSH1106)** 
+| OLED Pin | D1 Mini |
+| --- | --- |
+| SCK | D1 |
+| SDA | D2 |
+
+**Left Push Button** 
+| D1 Mini |
+| --- |
+| D4 |
+
+**Right Push Button** 
+| D1 Mini |
+| --- |
+| TX |
+
+**NRF24L01** 
+| NRF24 Pin | D1 Mini |
+| --- | --- |
+| CE | D3 |
+| CSN | D8 |
+| SCK | D5 |
+| MO | D7 |
+| MI | D6 |
