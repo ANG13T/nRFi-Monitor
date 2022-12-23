@@ -21,6 +21,12 @@ A 2.4GHz band and WiFi analyzer toolkit made with the D1 Mini and NRF24L01
 | SDPT Switch (optional) | Control Battery |
 | D1 Mini Shield (optional) | Battery Config |
 
+## Breadboard
+<img src="https://github.com/angelina-tsuboi/nRFi-Monitor/blob/main/assets/breadboard.png" alt="n-RFi breadboard" width="500"/>
+
+## Schematic
+<img src="https://github.com/angelina-tsuboi/nRFi-Monitor/blob/main/assets/schematic.png" alt="n-RFi schematic" width="500"/>
+
 ## Hardware Setup
 **128x64 OLED (SSH1106)** 
 | OLED Pin | D1 Mini |
@@ -46,9 +52,3 @@ A 2.4GHz band and WiFi analyzer toolkit made with the D1 Mini and NRF24L01
 | SCK | D5 |
 | MO | D7 |
 | MI | D6 |
-
-## Breadboard
-<img src="https://github.com/angelina-tsuboi/nRFi-Monitor/blob/main/assets/breadboard.png" alt="n-RFi breadboard" width="500"/>
-
-## Schematic
-<img src="https://github.com/angelina-tsuboi/nRFi-Monitor/blob/main/assets/schematic.png" alt="n-RFi schematic" width="500"/>
