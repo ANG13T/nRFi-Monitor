@@ -144,7 +144,7 @@ void setup(void)
   radio.stopListening();
 
   pinMode(BUTTON_INPUT, INPUT_PULLUP);
-//  pinMode(BACK_BUTTON_INPUT, INPUT);
+  //  pinMode(BACK_BUTTON_INPUT, INPUT);
   pinMode(BACK_BUTTON_INPUT, FUNCTION_3);  // TX
   pinMode(BACK_BUTTON_INPUT, INPUT_PULLUP);
 
@@ -161,20 +161,20 @@ void setup(void)
   radio.setDataRate(RF24_1MBPS);
 
   // Print out header, high then low digit
-//  int i = 0;
-//  while ( i < num_channels )
-//  {
-//    Serial.print(i >> 4);
-//    ++i;
-//  }
-//  Serial.println();
-//  i = 0;
-//  while ( i < num_channels )
-//  {
-//    Serial.print(i & 0xf, HEX);
-//    ++i;
-//  }
-//  Serial.println();
+  //  int i = 0;
+  //  while ( i < num_channels )
+  //  {
+  //    Serial.print(i >> 4);
+  //    ++i;
+  //  }
+  //  Serial.println();
+  //  i = 0;
+  //  while ( i < num_channels )
+  //  {
+  //    Serial.print(i & 0xf, HEX);
+  //    ++i;
+  //  }
+  //  Serial.println();
 
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
@@ -188,8 +188,8 @@ void setup(void)
 void buttonInput() {
   int buttonVal = digitalRead(BUTTON_INPUT); // HIGH = open, LOW = pressed
   int backButtonVal = digitalRead(BACK_BUTTON_INPUT);
-//  Serial.println("jlkjk");
-//  Serial.println(buttonVal);
+  //  Serial.println("jlkjk");
+  //  Serial.println(buttonVal);
   if (buttonVal == LOW) {
     //Serial.println("pressed!");
     delay(100);
@@ -225,16 +225,21 @@ void scannerMenuInput () {
       displayState = 0;
     } else if (scannerMenuPointer == 0) {
       if (scannerOptions[0] == "Automatic") {
-        scannerOptions[0] = "Manual";
+        scannerOptions[0] = " Manual";
       } else {
         scannerOptions[0] = "Automatic";
       }
     } else if (scannerMenuPointer == 1) {
       wifiScanComplete = false;
-      displayState = 4;
+      if (scannerOptions[0] == "Manual") {
+        displayState = 4;
+      } else {
+        displayState = 5;
+      }
+
     }
     delay(500);
-  } 
+  }
 }
 
 void manualScannerInput() {
@@ -246,11 +251,21 @@ void manualScannerInput() {
     delay(300);
   }
 
-  if(rState == LOW) {
+  if (rState == LOW) {
     wifiScannedIndex++;
     if (wifiScannedIndex == wifiScannedNumber) {
       wifiScannedIndex = 0;
     }
+    delay(300);
+  }
+}
+
+void autoScannerInput() {
+  lState = digitalRead(BUTTON_INPUT);
+  rState = digitalRead(BACK_BUTTON_INPUT);
+
+  if (lState == LOW) {
+    displayState = 2;
     delay(300);
   }
 }
@@ -270,7 +285,7 @@ void menuButtonPress() {
 
   if (rState == LOW && displayState == 0) {
     displayState = menuPointer + 1;
-    if(displayState == 2) {
+    if (displayState == 2) {
       scannerMenuPointer = 0;
     }
     //Serial.print(displayState);
@@ -316,10 +331,10 @@ void displayScannerMenu() {
     }
 
     if (scannerMenuPointer != 0) {
-        display.drawLine(20, 16, 20, 29);
-        display.fillTriangle(8, 22, 11, 18, 11, 26);
-        display.fillTriangle(119, 22, 116, 18, 116, 26);
-        display.drawLine(107, 16, 107, 29);
+      display.drawLine(20, 16, 20, 29);
+      display.fillTriangle(8, 22, 11, 18, 11, 26);
+      display.fillTriangle(119, 22, 116, 18, 116, 26);
+      display.drawLine(107, 16, 107, 29);
     }
   }
   display.display();
@@ -389,13 +404,20 @@ void loop()
     scannerMenuInput();
     displayScannerMenu();
   } else if (displayState == 3) { // vicinity detector
-    
+
   } else if (displayState == 4) { // WiFi scanner manual display
     display.clear();
     manualScannerInput();
     updateWifiScannerManualToolbar();
     scanWiFi();
     displayScannedWiFi();
+    display.display();
+    delay(0);
+  } else if (displayState == 5) { // WiFi scanner automatic display
+    display.clear();
+    autoScannerInput();
+    updateWifiScannerAutoToolbar();
+    displayAutoScannedWiFi();
     display.display();
     delay(0);
   }
@@ -411,68 +433,87 @@ void scanWiFi() {
     wifiScannedNumber = n;
     wifiScanComplete = true;
   }
-  
-  
+
+
   //Serial.println("Wifi scan ended");
   //if (n == 0) {
-    //Serial.println("no networks found");
+  //Serial.println("no networks found");
   //} else {
-    //wifiScannedNumber = n;
-//    Serial.print(n);
-//    Serial.println(" networks found");
-    //for (int i = 0; i < n; ++i) {
-      // Print SSID and RSSI for each network found
-      //Serial.print(i + 1);
-      //Serial.print(") ");
-      //Serial.print(WiFi.SSID(i));// SSID
+  //wifiScannedNumber = n;
+  //    Serial.print(n);
+  //    Serial.println(" networks found");
+  //for (int i = 0; i < n; ++i) {
+  // Print SSID and RSSI for each network found
+  //Serial.print(i + 1);
+  //Serial.print(") ");
+  //Serial.print(WiFi.SSID(i));// SSID
 
-//      Serial.print(" ch:");
-//      Serial.print(WiFi.channel(i));
-//      Serial.print(" ");
-//
-//      Serial.print(WiFi.RSSI(i));
-//      Serial.print("dBm (");
-//
-//
-//      Serial.print(dBmtoPercentage(WiFi.RSSI(i)));
-//      Serial.print("% )");
-//
-//      Serial.print(" MAC:");
-//      Serial.print(WiFi.BSSIDstr(i));
-//
-//
-//      if (WiFi.isHidden(i) ) {
-//        Serial.print(" <<Hidden>> ");
-//      }
-//      if (displayEnc)
-//      {
-//        Serial.print(" Encryption:");
-//        Serial.println(encType(i));
-//      }
+  //      Serial.print(" ch:");
+  //      Serial.print(WiFi.channel(i));
+  //      Serial.print(" ");
+  //
+  //      Serial.print(WiFi.RSSI(i));
+  //      Serial.print("dBm (");
+  //
+  //
+  //      Serial.print(dBmtoPercentage(WiFi.RSSI(i)));
+  //      Serial.print("% )");
+  //
+  //      Serial.print(" MAC:");
+  //      Serial.print(WiFi.BSSIDstr(i));
+  //
+  //
+  //      if (WiFi.isHidden(i) ) {
+  //        Serial.print(" <<Hidden>> ");
+  //      }
+  //      if (displayEnc)
+  //      {
+  //        Serial.print(" Encryption:");
+  //        Serial.println(encType(i));
+  //      }
 
-     // delay(10);
-    //}
+  // delay(10);
+  //}
   //}
   //Serial.println("");
 
   // Wait a bit before scanning again
   // TODO: incorporate (delete when back on live ssid display pressed)
-//  delay(5000);
-//  WiFi.scanDelete();
+  //  delay(5000);
+  //  WiFi.scanDelete();
+}
+
+void displayAutoScannedWiFi() {
+  int n = WiFi.scanNetworks();
+  if (n == 0) {
+    display.drawString(35, 35, "No Networks Found");
+  } else {
+    for (int i = 0; i < n; ++i) {
+      String bssid;
+      if (WiFi.BSSIDstr(wifiScannedIndex).length() < 18) {
+        bssid = WiFi.BSSIDstr(wifiScannedIndex);
+      }
+      else if (WiFi.BSSIDstr(wifiScannedIndex).length() > 1) {
+        bssid = WiFi.BSSIDstr(wifiScannedIndex).substring(0, 17 ) + "...";
+      }
+      display.drawString(0, 14, "SSID: "); display.drawString(30, 14, WiFi.SSID(wifiScannedIndex));
+      display.drawString(0, 22, "CH: "); display.drawString(30, 22, String(WiFi.channel(wifiScannedIndex)));
+      display.drawString(0, 30, "RSSI: "); display.drawString(30, 30, String(WiFi.RSSI(wifiScannedIndex)) + " dBm");
+      display.drawString(0, 38, "RSSI: "); display.drawString(30, 38, String(dBmtoPercentage(WiFi.RSSI(wifiScannedIndex))) + "%");
+      display.drawString(0, 46, "MAC: "); display.drawString(30, 46, bssid);
+      display.drawString(0, 54, "ENC: "); display.drawString(30, 54, encType(wifiScannedIndex));
+    }
+  }
 }
 
 void displayScannedWiFi() { //wifiScannedNumber
   String bssid;
-  String isHiddenWiFi = "FALSE";
-  if (WiFi.isHidden(wifiScannedIndex)) {
-    isHiddenWiFi = "TRUE";
-  }
   if (WiFi.BSSIDstr(wifiScannedIndex).length() < 18) {
-      bssid = WiFi.BSSIDstr(wifiScannedIndex);
-    }
-    else if (WiFi.BSSIDstr(wifiScannedIndex).length() > 1) {
-      bssid = WiFi.BSSIDstr(wifiScannedIndex).substring(0, 17 ) + "...";
-    }
+    bssid = WiFi.BSSIDstr(wifiScannedIndex);
+  }
+  else if (WiFi.BSSIDstr(wifiScannedIndex).length() > 1) {
+    bssid = WiFi.BSSIDstr(wifiScannedIndex).substring(0, 17 ) + "...";
+  }
 
 
   if (wifiScannedNumber == 0) {
@@ -528,6 +569,15 @@ void updateWifiScannerManualToolbar() {
   display.drawLine(107, 0, 107, 12);
   display.drawString(116, 0, "+");
   display.drawString(50, 0, String(wifiScannedIndex + 1) + " / " + String(wifiScannedNumber));
+}
+
+void updateWifiScannerAutoToolbar() {
+  display.drawLine(0, 12, 127, 12);
+  display.drawLine(20, 0, 20, 12);
+  display.fillTriangle(8, 5, 11, 2, 11, 8);
+  display.drawLine(107, 0, 107, 12);
+  display.drawString(116, 0, "+");
+  display.drawString(50, 0, "WiFi Scanner");
 }
 
 
@@ -613,8 +663,8 @@ void outputChannelsGrey(void)
   }
 
   // indicate overall power
-//  Serial.print("| ");
-//  Serial.println(norm);
+  //  Serial.print("| ");
+  //  Serial.println(norm);
 }
 
 void outputChannels()
