@@ -232,13 +232,23 @@ void autoScannerInput() {
   }
 }
 
+void vicinityDisplayInput() {
+  lState = digitalRead(BUTTON_INPUT);
+
+  if (lState == LOW) {
+    displayState = 3;
+    wifiVicinityScanStarted = false;
+    delay(300);
+  }
+}
+
 void vicinityInput() {
   lState = digitalRead(BUTTON_INPUT);
   rState = digitalRead(BACK_BUTTON_INPUT);
 
   if (lState == LOW) {
     vicinityMenuSelector++;
-    if (vicinityMenuSelector == vicinityAPAmount) {
+    if (vicinityMenuSelector > vicinityAPAmount) {
       vicinityMenuSelector = 0;
     }
     delay(300);
@@ -335,6 +345,37 @@ void printMenuScreen() {
   displayMenu();
 }
 
+int RoundNum(int num)
+{
+     int rem = num % 10;
+     return rem >= 5 ? (num - rem + 10) : (num - rem);
+}
+
+void displayVicinityView() {
+    display.drawLine(0, 12, 127, 12);
+    display.drawLine(20, 0, 20, 12);
+    display.fillTriangle(8, 5, 11, 2, 11, 8);
+    display.drawString(30, 0, "Vicinity Display");
+    display.drawString(0, 14, "SSID: "); display.drawString(30, 14, WiFi.SSID(vicinityMenuSelector));
+    display.drawString(0, 22, "RSSI: "); display.drawString(30, 30, String(WiFi.RSSI(vicinityMenuSelector)) + " dBm");
+    display.drawString(0, 30, "RSSI: "); display.drawString(30, 38, String(dBmtoPercentage(WiFi.RSSI(vicinityMenuSelector))) + "%");
+    int rounded = RoundNum(dBmtoPercentage(WiFi.RSSI(vicinityMenuSelector)));
+    String meter = RSSIMeter(rounded);
+    display.drawString(0, 38, meter); // [==========]   
+}
+//
+String RSSIMeter (int amount) {
+  String meter = "["
+  for (int i = 0; i < rounded; i++) {
+     meter += "=";
+  }
+  for (int i = 0; i < rounded; i++) {
+     meter += " ";
+  }
+  meter += "]";
+  return meter;
+}
+
 void loop()
 {
   if (displayState == 0) {
@@ -404,6 +445,10 @@ void loop()
     delay(0);
   } else if (displayState == 6) { // WiFi vicinity RSSID display
       display.clear();
+      vicinityDisplayInput();
+      displayVicinityView();
+      display.display();
+      delay(0);
    }
 }
 
@@ -534,9 +579,7 @@ void updateTrafficAnalyzerToolbar() {
 
 void updateVicinityToolbar() {
   display.drawLine(0, 12, 127, 12);
-  display.drawLine(20, 0, 20, 12);
-  display.fillTriangle(8, 5, 11, 2, 11, 8);
-  display.drawString(40, 0, "Select AP");
+  display.drawString(25, 0, "Select AP");
 }
 
 void updateWifiScannerManualToolbar() {
