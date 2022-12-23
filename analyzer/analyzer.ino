@@ -35,6 +35,9 @@ int lState = 0;
 int rState = 0;
 int menuPointer = 0;
 int scannerMenuPointer = 0;
+int wifiScannedNumber = 0;
+int wifiScannedIndex = 0;
+bool wifiScanComplete = false;
 
 const char *options[3] = {
   "Traffic Analyzer",
@@ -46,7 +49,7 @@ const char *options[3] = {
 const char *scannerOptions[3] = {
   "Automatic",
   "Start Scan",
-  "Back"
+  "   Back"
 };
 
 // Greyscale
@@ -226,6 +229,8 @@ void scannerMenuInput () {
       } else {
         scannerOptions[0] = "Automatic";
       }
+    } else if (scannerMenuPointer == 1) {
+      displayState = 4;
     }
     delay(500);
   } 
@@ -377,8 +382,13 @@ void loop()
   } else if (displayState == 3) { // vicinity detector
     
   } else if (displayState == 4) { // WiFi scanner manual display
+    display.clear();
     manualScannerInput();
     updateWifiScannerManualToolbar();
+    scanWiFi();
+    displayScannedWiFi();
+    display.display();
+    delay(0);
   }
 }
 
@@ -387,14 +397,21 @@ void scanWiFi() {
   //Serial.println("Wifi scan started");
 
   // WiFi.scanNetworks will return the number of networks found
-  int n = WiFi.scanNetworks();
+  if (wifiScanComplete == false) {
+    int n = WiFi.scanNetworks();
+    wifiScannedNumber = n;
+    wifiScanComplete = true;
+  }
+  
+  
   //Serial.println("Wifi scan ended");
-  if (n == 0) {
+  //if (n == 0) {
     //Serial.println("no networks found");
-  } else {
+  //} else {
+    //wifiScannedNumber = n;
 //    Serial.print(n);
 //    Serial.println(" networks found");
-    for (int i = 0; i < n; ++i) {
+    //for (int i = 0; i < n; ++i) {
       // Print SSID and RSSI for each network found
       //Serial.print(i + 1);
       //Serial.print(") ");
@@ -424,14 +441,23 @@ void scanWiFi() {
 //        Serial.println(encType(i));
 //      }
 
-      delay(10);
-    }
-  }
+     // delay(10);
+    //}
+  //}
   //Serial.println("");
 
   // Wait a bit before scanning again
-  delay(5000);
-  WiFi.scanDelete();
+  // TODO: incorporate (delete when back on live ssid display pressed)
+//  delay(5000);
+//  WiFi.scanDelete();
+}
+
+void displayScannedWiFi() { //wifiScannedNumber
+  if (wifiScannedNumber == 0) {
+    display.drawString(35, 35, "No Networks Found");
+  } else {
+    display.drawString(35, 35, "SSID: " + String(WiFi.SSID(wifiScannedIndex)));
+  }
 }
 
 void checkTrafficAnalyzerInput() {
