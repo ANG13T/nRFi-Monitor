@@ -149,7 +149,7 @@ void setup(void)
   display.init();
   display.flipScreenVertically();
   display.setFont(ArialMT_Plain_10);
-  display.drawString(5, 15, "2.4 GHz Channel Analyzer");
+  display.drawString(5, 15, "n-RFi Monitor");
   display.drawString(17, 38, "By Angelina Tsuboi");
   display.display();
 
@@ -212,6 +212,7 @@ void scannerMenuInput () {
     delay(100);
   }
 
+
   if (rState == LOW && displayState == 2) {
     //Serial.println("PRESS!");
     //    TODO: SCAN
@@ -219,8 +220,24 @@ void scannerMenuInput () {
     //    Serial.print(displayState);
     if (scannerMenuPointer == 2) {
       displayState = 0;
+    } else if (scannerMenuPointer == 0) {
+      if (scannerOptions[0] == "Automatic") {
+        scannerOptions[0] = "Manual";
+      } else {
+        scannerOptions[0] = "Automatic";
+      }
     }
-    delay(100);
+    delay(500);
+  } 
+}
+
+void manualScannerInput() {
+  lState = digitalRead(BUTTON_INPUT);
+  rState = digitalRead(BACK_BUTTON_INPUT);
+
+  if (lState == LOW) {
+    displayState = 2;
+    delay(300);
   }
 }
 
@@ -239,6 +256,9 @@ void menuButtonPress() {
 
   if (rState == LOW && displayState == 0) {
     displayState = menuPointer + 1;
+    if(displayState == 2) {
+      scannerMenuPointer = 0;
+    }
     //Serial.print(displayState);
     delay(300);
   }
@@ -275,10 +295,10 @@ void displayScannerMenu() {
         display.fillRect(0, 16 + (17 * i), 127, 13);
       }
       display.setColor(BLACK);
-      display.drawString(33, 16 + (17 * i), scannerOptions[i]);
+      display.drawString(38, 16 + (17 * i), scannerOptions[i]);
       display.setColor(WHITE);
     } else {
-      display.drawString(33, 16 + (17 * i), scannerOptions[i]);
+      display.drawString(38, 16 + (17 * i), scannerOptions[i]);
     }
 
     if (scannerMenuPointer != 0) {
@@ -354,6 +374,11 @@ void loop()
   } else if (displayState == 2) { // TODO: make automatic and manual version, [AUTOMATIC | MANUAL] [START SCAN] [BACK]
     scannerMenuInput();
     displayScannerMenu();
+  } else if (displayState == 3) { // vicinity detector
+    
+  } else if (displayState == 4) { // WiFi scanner manual display
+    manualScannerInput();
+    updateWifiScannerManualToolbar();
   }
 }
 
@@ -441,6 +466,15 @@ void updateTrafficAnalyzerToolbar() {
   } else {
     display.drawString(45, 0, "Channel: " + String(selectedChannel));
   }
+}
+
+void updateWifiScannerManualToolbar() {
+  display.drawLine(0, 12, 127, 12);
+  display.drawLine(20, 0, 20, 12);
+  display.fillTriangle(8, 5, 11, 2, 11, 8);
+  display.drawLine(107, 0, 107, 12);
+  display.drawString(116, 0, "+");
+  display.drawString(55, 0, "1 / 13");
 }
 
 
