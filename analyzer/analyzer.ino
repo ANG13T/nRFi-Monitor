@@ -1,3 +1,16 @@
+/*
+ 
+    _  _    ____ ____ _    _  _ ____ _  _ _ ___ ____ ____ 
+    |\ | __ |__/ |___ |    |\/| |  | |\ | |  |  |  | |__/ 
+    | \|    |  \ |    |    |  | |__| | \| |  |  |__| |  \ 
+                                                      
+   A 2.4GHz band and WiFi analyzer toolkit made with the D1 Mini and NRF24L01
+   https://github.com/angelina-tsuboi/nRFi-Monitor
+
+   By Angelina Tsuboi (angelinatsuboi.net)
+
+*/
+
 #include <SPI.h>
 #include "nRF24L01.h"
 #include "RF24.h"
