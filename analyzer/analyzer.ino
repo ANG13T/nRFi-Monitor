@@ -60,6 +60,7 @@ char grey[] = " 123456789";
 int displayState = 0;
 bool wifiScanStarted = false;
 bool wifiVicinityScanStarted = false;
+int vicinityMenuSelector = 0;
 
 int selectedChannel = 0;
 
@@ -130,16 +131,9 @@ const int displayEnc = 1; // set to 1 to dispaly Encryption or 0 not to display
 
 void setup(void)
 {
-  // Start Serial port
-  //Serial.begin(115200);
-  delay(200);
-  //Serial.println(); Serial.println();
-
   // Setup and configure rf radio
   radio.begin();
   radio.setAutoAck(false);
-  //radio.openWritingPipe(pipes[0]);
-  //radio.openReadingPipe(1,pipes[1]);
 
   // Get into standby mode
   radio.startListening();
@@ -155,29 +149,13 @@ void setup(void)
   display.init();
   display.flipScreenVertically();
   display.setFont(ArialMT_Plain_10);
-  display.drawString(5, 15, "n-RFi Monitor");
+  display.drawString(20, 15, "n-RFi Monitor");
   display.drawString(17, 38, "By Angelina Tsuboi");
   display.display();
 
   // Display Radio Configuration
   getradiodetails();
   radio.setDataRate(RF24_1MBPS);
-
-  // Print out header, high then low digit
-  //  int i = 0;
-  //  while ( i < num_channels )
-  //  {
-  //    Serial.print(i >> 4);
-  //    ++i;
-  //  }
-  //  Serial.println();
-  //  i = 0;
-  //  while ( i < num_channels )
-  //  {
-  //    Serial.print(i & 0xf, HEX);
-  //    ++i;
-  //  }
-  //  Serial.println();
 
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
@@ -205,10 +183,6 @@ void scannerMenuInput () {
 
 
   if (rState == LOW && displayState == 2) {
-    //Serial.println("PRESS!");
-    //    TODO: SCAN
-    //    displayState = menuPointer + 1;
-    //    Serial.print(displayState);
     if (scannerMenuPointer == 2) {
       displayState = 0;
     } else if (scannerMenuPointer == 0) {
@@ -263,7 +237,21 @@ void vicinityInput() {
   rState = digitalRead(BACK_BUTTON_INPUT);
 
   if (lState == LOW) {
-    displayState = 0;
+    vicinityMenuSelector++;
+    if (vicinityMenuSelector == vicinityAPAmount) {
+      vicinityMenuSelector = 0;
+    }
+    delay(300);
+  }
+
+   if (rState == LOW) {
+
+    if (vicinityMenuSelector == vicinityAPAmount - 1) {
+       displayState = 0;
+    } else {
+       displayState = 6;
+    }
+   
     delay(300);
   }
 }
@@ -286,9 +274,9 @@ void menuButtonPress() {
     if (displayState == 2) {
       scannerMenuPointer = 0;
     }
-    if(displayState == 3) {
+    if (displayState == 3) {
       wifiVicinityScanStarted = false;
-     }
+    }
     //Serial.print(displayState);
     delay(300);
   }
@@ -390,17 +378,8 @@ void loop()
       yield();
     }
 
-    outputChannels(); // grey map
+    outputChannels();
 
-    // Print out channel measurements, clamped to a single hex digit
-    //        int i = 0;
-    //        while ( i < num_channels )
-    //        {
-    //          Serial.print(min(zeroVal, values[i]));
-    //          ++i;
-    //        }
-    //        Serial.println();
-    //        yield();
   } else if (displayState == 2) { // TODO: make automatic and manual version, [AUTOMATIC | MANUAL] [START SCAN] [BACK]
     scannerMenuInput();
     displayScannerMenu();
@@ -423,7 +402,9 @@ void loop()
     autoScannerInput();
     displayAutoScannedWiFi();
     delay(0);
-  }
+  } else if (displayState == 6) { // WiFi vicinity RSSID display
+      display.clear();
+   }
 }
 
 void scanWiFi() {
@@ -464,24 +445,35 @@ void displayAutoScannedWiFi() {
       autoScannerInput();
       display.display();
     }
-      // TODO: continously refresh scan
-     WiFi.scanDelete();
+    // TODO: continously refresh scan
+    WiFi.scanDelete();
   }
 }
 
 void displayVicinityWiFiList() {
-  if(wifiVicinityScanStarted == false) {
+  if (wifiVicinityScanStarted == false) {
     vicinityAPAmount = WiFi.scanNetworks();
-    if(vicinityAPAmount > 5) {
-      vicinityAPAmount = 5;
-    }    
+    if (vicinityAPAmount > 4) {
+      vicinityAPAmount = 4;
+    }
     wifiVicinityScanStarted = true;
   }
 
-  for(int i = 0; i < vicinityAPAmount; ++i) {
+  for (int i = 0; i < vicinityAPAmount + 1; ++i) {
+    if (vicinityMenuSelector == i) {
+      display.fillRect(0, 14 + (11 * i), 127, 13);
+      display.setColor(BLACK);
       display.drawString(5, (14 + (11 * i)), WiFi.SSID(i));
-   }
-    // WiFi.scanDelete(); in back button
+      display.setColor(WHITE);
+    } else {
+      if (i == vicinityAPAmount) {
+        display.drawString(5, (14 + (11 * i)), "BACK");
+      } else {
+        display.drawString(5, (14 + (11 * i)), WiFi.SSID(i));
+      }
+    }
+  }
+  // WiFi.scanDelete(); in back button
 }
 
 void displayScannedWiFi() { //wifiScannedNumber
@@ -512,11 +504,11 @@ void checkTrafficAnalyzerInput() {
   pinMode(BACK_BUTTON_INPUT, INPUT_PULLUP);
   int increase = digitalRead(BACK_BUTTON_INPUT);
   int back = digitalRead(BUTTON_INPUT);
-  
-    if (back == LOW) {
-      displayState = 0;
-      delay(300);
-    }
+
+  if (back == LOW) {
+    displayState = 0;
+    delay(300);
+  }
 
   if (increase == LOW) {
     //Serial.print("Increase Channel");
@@ -541,7 +533,7 @@ void updateTrafficAnalyzerToolbar() {
 }
 
 void updateVicinityToolbar() {
-     display.drawLine(0, 12, 127, 12);
+  display.drawLine(0, 12, 127, 12);
   display.drawLine(20, 0, 20, 12);
   display.fillTriangle(8, 5, 11, 2, 11, 8);
   display.drawString(40, 0, "Select AP");
@@ -614,41 +606,6 @@ int dBmtoPercentage(int dBm)
 
   return quality;
 }//dBmtoPercentage
-
-// greyscale stuff
-void outputChannelsGrey(void)
-{
-  int norm = 0;
-
-  // find the maximal count in channel array
-  for ( int i = 0 ; i < num_channels ; i++)
-    if ( values[i] > norm ) norm = values[i];
-
-  // now output the data
-  //Serial.print('|');
-  for ( int i = 0 ; i < num_channels ; i++)
-  {
-    int pos;
-
-    // calculate grey value position
-    if ( norm != 0 ) pos = (values[i] * 10) / norm;
-    else          pos = 0;
-
-    // boost low values
-    if ( pos == 0 && values[i] > 0 ) pos++;
-
-    // clamp large values
-    if ( pos > 9 ) pos = 9;
-
-    // print it out
-    //Serial.print(grey[pos]);
-    values[i] = 0;
-  }
-
-  // indicate overall power
-  //  Serial.print("| ");
-  //  Serial.println(norm);
-}
 
 void outputChannels()
 {
