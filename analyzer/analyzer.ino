@@ -209,10 +209,10 @@ void scannerMenuInput () {
   // uni-directional menu scroller (left = navigation, right = selection)
   if (lState == LOW && scannerMenuPointer == 2) {
     scannerMenuPointer = 0;
-    delay(100);
+    delay(200);
   } else if (lState == LOW) {
     scannerMenuPointer += 1;
-    delay(100);
+    delay(200);
   }
 
 
@@ -231,7 +231,7 @@ void scannerMenuInput () {
       }
     } else if (scannerMenuPointer == 1) {
       wifiScanComplete = false;
-      if (scannerOptions[0] == "Manual") {
+      if (scannerOptions[0] == " Manual") {
         displayState = 4;
       } else {
         displayState = 5;
@@ -416,9 +416,7 @@ void loop()
   } else if (displayState == 5) { // WiFi scanner automatic display
     display.clear();
     autoScannerInput();
-    updateWifiScannerAutoToolbar();
     displayAutoScannedWiFi();
-    display.display();
     delay(0);
   }
 }
@@ -484,25 +482,36 @@ void scanWiFi() {
 }
 
 void displayAutoScannedWiFi() {
+  updateWifiScannerAutoToolbar();
   int n = WiFi.scanNetworks();
   if (n == 0) {
+    display.clear();
     display.drawString(35, 35, "No Networks Found");
+    display.display();
   } else {
+    n = WiFi.scanNetworks();
     for (int i = 0; i < n; ++i) {
+      display.clear();
+      updateWifiScannerAutoToolbar();
       String bssid;
-      if (WiFi.BSSIDstr(wifiScannedIndex).length() < 18) {
-        bssid = WiFi.BSSIDstr(wifiScannedIndex);
+      if (WiFi.BSSIDstr(i).length() < 18) {
+        bssid = WiFi.BSSIDstr(i);
       }
-      else if (WiFi.BSSIDstr(wifiScannedIndex).length() > 1) {
-        bssid = WiFi.BSSIDstr(wifiScannedIndex).substring(0, 17 ) + "...";
+      else if (WiFi.BSSIDstr(i).length() > 1) {
+        bssid = WiFi.BSSIDstr(i).substring(0, 17 ) + "...";
       }
-      display.drawString(0, 14, "SSID: "); display.drawString(30, 14, WiFi.SSID(wifiScannedIndex));
-      display.drawString(0, 22, "CH: "); display.drawString(30, 22, String(WiFi.channel(wifiScannedIndex)));
-      display.drawString(0, 30, "RSSI: "); display.drawString(30, 30, String(WiFi.RSSI(wifiScannedIndex)) + " dBm");
-      display.drawString(0, 38, "RSSI: "); display.drawString(30, 38, String(dBmtoPercentage(WiFi.RSSI(wifiScannedIndex))) + "%");
+      display.drawString(0, 14, "SSID: "); display.drawString(30, 14, WiFi.SSID(i));
+      display.drawString(0, 22, "CH: "); display.drawString(30, 22, String(WiFi.channel(i)));
+      display.drawString(0, 30, "RSSI: "); display.drawString(30, 30, String(WiFi.RSSI(i)) + " dBm");
+      display.drawString(0, 38, "RSSI: "); display.drawString(30, 38, String(dBmtoPercentage(WiFi.RSSI(i))) + "%");
       display.drawString(0, 46, "MAC: "); display.drawString(30, 46, bssid);
-      display.drawString(0, 54, "ENC: "); display.drawString(30, 54, encType(wifiScannedIndex));
+      display.drawString(0, 54, "ENC: "); display.drawString(30, 54, encType(i));
+      delay(100); // delay to see packets longer
+      autoScannerInput();
+      display.display();
     }
+      // TODO: continously refresh scan
+     WiFi.scanDelete();
   }
 }
 
@@ -575,9 +584,7 @@ void updateWifiScannerAutoToolbar() {
   display.drawLine(0, 12, 127, 12);
   display.drawLine(20, 0, 20, 12);
   display.fillTriangle(8, 5, 11, 2, 11, 8);
-  display.drawLine(107, 0, 107, 12);
-  display.drawString(116, 0, "+");
-  display.drawString(50, 0, "WiFi Scanner");
+  display.drawString(35, 0, "WiFi Scanner");
 }
 
 
