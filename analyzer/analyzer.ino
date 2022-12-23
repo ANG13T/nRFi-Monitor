@@ -527,7 +527,7 @@ void updateWifiScannerManualToolbar() {
   display.fillTriangle(8, 5, 11, 2, 11, 8);
   display.drawLine(107, 0, 107, 12);
   display.drawString(116, 0, "+");
-  display.drawString(55, 0, String(wifiScannedIndex) + " / " + String(wifiScannedNumber));
+  display.drawString(50, 0, String(wifiScannedIndex + 1) + " / " + String(wifiScannedNumber));
 }
 
 
