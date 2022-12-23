@@ -39,6 +39,7 @@ int wifiScannedNumber = 0;
 int wifiScannedIndex = 0;
 bool wifiScanComplete = false;
 bool vicinityScanComplete = false;
+int vicinityAPAmount = 0;
 
 const char *options[3] = {
   "Traffic Analyzer",
@@ -58,6 +59,7 @@ char grey[] = " 123456789";
 
 int displayState = 0;
 bool wifiScanStarted = false;
+bool wifiVicinityScanStarted = false;
 
 int selectedChannel = 0;
 
@@ -256,6 +258,16 @@ void autoScannerInput() {
   }
 }
 
+void vicinityInput() {
+  lState = digitalRead(BUTTON_INPUT);
+  rState = digitalRead(BACK_BUTTON_INPUT);
+
+  if (lState == LOW) {
+    displayState = 0;
+    delay(300);
+  }
+}
+
 void menuButtonPress() {
   lState = digitalRead(BUTTON_INPUT);
   rState = digitalRead(BACK_BUTTON_INPUT);
@@ -275,7 +287,7 @@ void menuButtonPress() {
       scannerMenuPointer = 0;
     }
     if(displayState == 3) {
-      wifiScanComplete = false;
+      wifiVicinityScanStarted = false;
      }
     //Serial.print(displayState);
     delay(300);
@@ -394,6 +406,7 @@ void loop()
     displayScannerMenu();
   } else if (displayState == 3) { // vicinity detector
     display.clear();
+    vicinityInput();
     updateVicinityToolbar();
     displayVicinityWiFiList();
     display.display();
@@ -457,17 +470,18 @@ void displayAutoScannedWiFi() {
 }
 
 void displayVicinityWiFiList() {
-  if (wifiScanComplete == false) {
-    int amount = WiFi.scanNetworks();
-    if(amount > 5) {
-      amount = 5;
-    }
-  
-    for(int i = 0; i < amount; ++i) {
-      display.drawString(5, (14 + (7 * i)), WiFi.SSID(i));
-    }
-    wifiScanComplete = true;
+  if(wifiVicinityScanStarted == false) {
+    vicinityAPAmount = WiFi.scanNetworks();
+    if(vicinityAPAmount > 5) {
+      vicinityAPAmount = 5;
+    }    
+    wifiVicinityScanStarted = true;
   }
+
+  for(int i = 0; i < vicinityAPAmount; ++i) {
+      display.drawString(5, (14 + (11 * i)), WiFi.SSID(i));
+   }
+    // WiFi.scanDelete(); in back button
 }
 
 void displayScannedWiFi() { //wifiScannedNumber
@@ -530,8 +544,7 @@ void updateVicinityToolbar() {
      display.drawLine(0, 12, 127, 12);
   display.drawLine(20, 0, 20, 12);
   display.fillTriangle(8, 5, 11, 2, 11, 8);
-  display.drawLine(107, 0, 107, 12);
-  display.drawString(30, 0, "Select AP to Analyze");
+  display.drawString(40, 0, "Select AP");
 }
 
 void updateWifiScannerManualToolbar() {
