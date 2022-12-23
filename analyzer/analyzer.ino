@@ -537,23 +537,23 @@ void displayScannedWiFi() { //wifiScannedNumber
   }
 }
 
+// TODO: LOADING SCREEN
+
 void checkTrafficAnalyzerInput() {
   pinMode(BACK_BUTTON_INPUT, INPUT_PULLUP);
-  int increase = digitalRead(BUTTON_INPUT);
-  int back = digitalRead(BACK_BUTTON_INPUT);
-
-  //  Serial.println("BACK Input");
-  //  Serial.println(back);
-  //  if (back == LOW) {
-  //    displayState = 0;
-  //    delay(100);
-  //  }
+  int increase = digitalRead(BACK_BUTTON_INPUT);
+  int back = digitalRead(BUTTON_INPUT);
+  
+    if (back == LOW) {
+      displayState = 0;
+      delay(300);
+    }
 
   if (increase == LOW) {
     //Serial.print("Increase Channel");
     selectedChannel++;
     if (selectedChannel >= 13) selectedChannel = 0;
-    delay(1);
+    delay(300);
   }
 }
 
