@@ -17,8 +17,6 @@
 #include "SH1106Wire.h"
 #include <ESP8266WiFi.h>
 
-// WiFi and Device Presence Analysis Toolkit with the NRF24
-
 //
 // Hardware configuration
 //
