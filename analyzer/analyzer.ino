@@ -38,6 +38,7 @@ int scannerMenuPointer = 0;
 int wifiScannedNumber = 0;
 int wifiScannedIndex = 0;
 bool wifiScanComplete = false;
+bool vicinityScanComplete = false;
 
 const char *options[3] = {
   "Traffic Analyzer",
@@ -185,21 +186,6 @@ void setup(void)
 // Main Loop
 //
 
-void buttonInput() {
-  int buttonVal = digitalRead(BUTTON_INPUT); // HIGH = open, LOW = pressed
-  int backButtonVal = digitalRead(BACK_BUTTON_INPUT);
-  //  Serial.println("jlkjk");
-  //  Serial.println(buttonVal);
-  if (buttonVal == LOW) {
-    //Serial.println("pressed!");
-    delay(100);
-  }
-  if (backButtonVal == LOW) {
-    //Serial.println("pressed 2!");
-    delay(100);
-  }
-}
-
 void scannerMenuInput () {
   lState, rState = HIGH;
   lState = digitalRead(BUTTON_INPUT);
@@ -288,6 +274,9 @@ void menuButtonPress() {
     if (displayState == 2) {
       scannerMenuPointer = 0;
     }
+    if(displayState == 3) {
+      wifiScanComplete = false;
+     }
     //Serial.print(displayState);
     delay(300);
   }
@@ -404,7 +393,10 @@ void loop()
     scannerMenuInput();
     displayScannerMenu();
   } else if (displayState == 3) { // vicinity detector
-
+    display.clear();
+    updateVicinityToolbar();
+    displayVicinityWiFiList();
+    display.display();
   } else if (displayState == 4) { // WiFi scanner manual display
     display.clear();
     manualScannerInput();
@@ -421,64 +413,13 @@ void loop()
   }
 }
 
-
 void scanWiFi() {
-  //Serial.println("Wifi scan started");
-
   // WiFi.scanNetworks will return the number of networks found
   if (wifiScanComplete == false) {
     int n = WiFi.scanNetworks();
     wifiScannedNumber = n;
     wifiScanComplete = true;
   }
-
-
-  //Serial.println("Wifi scan ended");
-  //if (n == 0) {
-  //Serial.println("no networks found");
-  //} else {
-  //wifiScannedNumber = n;
-  //    Serial.print(n);
-  //    Serial.println(" networks found");
-  //for (int i = 0; i < n; ++i) {
-  // Print SSID and RSSI for each network found
-  //Serial.print(i + 1);
-  //Serial.print(") ");
-  //Serial.print(WiFi.SSID(i));// SSID
-
-  //      Serial.print(" ch:");
-  //      Serial.print(WiFi.channel(i));
-  //      Serial.print(" ");
-  //
-  //      Serial.print(WiFi.RSSI(i));
-  //      Serial.print("dBm (");
-  //
-  //
-  //      Serial.print(dBmtoPercentage(WiFi.RSSI(i)));
-  //      Serial.print("% )");
-  //
-  //      Serial.print(" MAC:");
-  //      Serial.print(WiFi.BSSIDstr(i));
-  //
-  //
-  //      if (WiFi.isHidden(i) ) {
-  //        Serial.print(" <<Hidden>> ");
-  //      }
-  //      if (displayEnc)
-  //      {
-  //        Serial.print(" Encryption:");
-  //        Serial.println(encType(i));
-  //      }
-
-  // delay(10);
-  //}
-  //}
-  //Serial.println("");
-
-  // Wait a bit before scanning again
-  // TODO: incorporate (delete when back on live ssid display pressed)
-  //  delay(5000);
-  //  WiFi.scanDelete();
 }
 
 void displayAutoScannedWiFi() {
@@ -512,6 +453,20 @@ void displayAutoScannedWiFi() {
     }
       // TODO: continously refresh scan
      WiFi.scanDelete();
+  }
+}
+
+void displayVicinityWiFiList() {
+  if (wifiScanComplete == false) {
+    int amount = WiFi.scanNetworks();
+    if(amount > 5) {
+      amount = 5;
+    }
+  
+    for(int i = 0; i < amount; ++i) {
+      display.drawString(5, (14 + (7 * i)), WiFi.SSID(i));
+    }
+    wifiScanComplete = true;
   }
 }
 
@@ -569,6 +524,14 @@ void updateTrafficAnalyzerToolbar() {
   } else {
     display.drawString(45, 0, "Channel: " + String(selectedChannel));
   }
+}
+
+void updateVicinityToolbar() {
+     display.drawLine(0, 12, 127, 12);
+  display.drawLine(20, 0, 20, 12);
+  display.fillTriangle(8, 5, 11, 2, 11, 8);
+  display.drawLine(107, 0, 107, 12);
+  display.drawString(30, 0, "Select AP to Analyze");
 }
 
 void updateWifiScannerManualToolbar() {
