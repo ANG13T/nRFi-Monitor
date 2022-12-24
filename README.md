@@ -71,4 +71,6 @@ Testing the n-RFi Monitor at a mall
 
 ## Special Thanks and Resources
 The n-RFi Monitor was inspired by previous projects created by Cifer Tech. Check out his projects below!
-- [cifertech/nRFBox)](https://github.com/cifertech/nRFBox)
+- [cifertech/nRFBox](https://github.com/cifertech/nRFBox)
+- [cifertech/2.4-GHz-band-Scanner](https://github.com/cifertech/2.4-GHz-band-Scanner)
+
