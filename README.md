@@ -16,7 +16,7 @@ A 2.4GHz band and WiFi analyzer toolkit made with the D1 Mini and NRF24L01
 | 2x Push Buttons | Gather user input |
 | NRF24L01 | Get 2.4GHz Traffic Data |
 | 3D Printed Case  | Protect components |
-| 4x 8/32 9.5mm screws  | Hold case together |
+| 4x 8/32 0.625inch screws  | Hold case together |
 | Lipo Battery 3.7V (optional) | Power |
 | SDPT Switch (optional) | Control Battery |
 | D1 Mini Shield (optional) | Battery Config |
