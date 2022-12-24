@@ -464,7 +464,6 @@ void loop()
 }
 
 void scanWiFi() {
-  // WiFi.scanNetworks will return the number of networks found
   if (wifiScanComplete == false) {
     int n = WiFi.scanNetworks();
     wifiScannedNumber = n;
@@ -501,7 +500,6 @@ void displayAutoScannedWiFi() {
       autoScannerInput();
       display.display();
     }
-    // TODO: continously refresh scan
     WiFi.scanDelete();
   }
 }
@@ -519,7 +517,11 @@ void displayVicinityWiFiList() {
     if (vicinityMenuSelector == i) {
       display.fillRect(0, 14 + (11 * i), 127, 13);
       display.setColor(BLACK);
-      display.drawString(5, (14 + (11 * i)), WiFi.SSID(i));
+      if (i == vicinityAPAmount) {
+        display.drawString(5, (14 + (11 * i)), "BACK");
+      } else {
+        display.drawString(5, (14 + (11 * i)), WiFi.SSID(i));
+      }
       display.setColor(WHITE);
     } else {
       if (i == vicinityAPAmount) {
@@ -632,15 +634,6 @@ String encType(int id) {
   //7 : ENC_TYPE_NONE – open network
   //8 : ENC_TYPE_AUTO – WPA / WPA2 / PSK
 }
-
-/*
-   Written by Ahmad Shamshiri
-    with lots of research, this sources was used:
-   https://support.randomsolutions.nl/827069-Best-dBm-Values-for-Wifi
-   This is approximate percentage calculation of RSSI
-   Wifi Signal Strength Calculation
-   Written Aug 08, 2019 at 21:45 in Ajax, Ontario, Canada
-*/
 
 int dBmtoPercentage(int dBm)
 {
