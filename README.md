@@ -1,5 +1,6 @@
-# n-RFi Monitor
-A 2.4GHz band and WiFi analyzer toolkit made with the D1 Mini and NRF24L01
+<img src="https://github.com/angelina-tsuboi/nRFi-Monitor/blob/main/assets/logo_large.png" alt="WiCon logo" width="400"/>
+
+### A 2.4GHz band and WiFi analyzer toolkit made with the D1 Mini and NRF24L01
 
 ## Features
 - 2.4 GHz Traffic Analyzer and Channel Filtering
