@@ -16,6 +16,7 @@
 #include "RF24.h"
 #include "SH1106Wire.h"
 #include <ESP8266WiFi.h>
+#include "graphics.h"
 
 //
 // Hardware configuration
@@ -160,8 +161,8 @@ void setup(void)
   display.init();
   display.flipScreenVertically();
   display.setFont(ArialMT_Plain_10);
-  display.drawString(30, 15, "n-RFi Monitor");
-  display.drawString(17, 38, "By Angelina Tsuboi");
+  display.drawXbm(5, 5, logo_width, logo_height, logo);
+  display.drawString(17, 50, "By Angelina Tsuboi");
   display.display();
 
   // Display Radio Configuration
