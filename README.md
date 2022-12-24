@@ -58,3 +58,17 @@
 <img src="https://github.com/angelina-tsuboi/nRFi-Monitor/blob/main/assets/preview.png" alt="n-RFi Monitor preview" width="700"/>
 Testing the n-RFi Monitor at a mall
 
+## Set up
+- Arduino IDE with the following URL added under Preferences -> Additional board manager URL's: http://arduino.esp8266.com/stable/package_esp8266com_index.json
+
+- ESP8266 boards added in Arduino IDE by going to Tools -> Boards -> Boards Manager, and installing ESP8266 Boards by ESP8266 Community
+
+- Install Zip file from https://github.com/wonho-maker/Adafruit_SH1106 and unzip the file inside Arduino -> libraries
+
+- Install nRF24L01 and ESP8266WiFi libraries
+
+- Optional: Depending on which type of OLED screen you use, you might have to install this library [esp8266-oled-ssd1306](https://github.com/ThingPulse/esp8266-oled-ssd1306)
+
+## Special Thanks and Resources
+The n-RFi Monitor was inspired by previous projects created by Cifer Tech. Check out his projects below!
+- [cifertech/nRFBox)](https://github.com/cifertech/nRFBox)
