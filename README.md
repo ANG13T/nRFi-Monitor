@@ -53,3 +53,8 @@
 | SCK | D5 |
 | MO | D7 |
 | MI | D6 |
+
+## Image
+<img src="https://github.com/angelina-tsuboi/nRFi-Monitor/blob/main/assets/preview.png" alt="n-RFi Monitor preview" width="700"/>
+Testing the n-RFi Monitor at a mall
+
