@@ -396,7 +396,6 @@ void loop()
   } else if (displayState == 1) { //TODO: either make concurrent processes or restyle menu to be synchronous
     // Clear measurement values
     checkTrafficAnalyzerInput();
-    // buttonInput();
     memset(values, 0, sizeof(values));
 
     // Scan all channels num_reps times
@@ -413,8 +412,6 @@ void loop()
           radio.setChannel(selectedChannel + 1);
         }
 
-
-        // Listen for a little
         radio.startListening();
         delayMicroseconds(130);
         radio.stopListening();
@@ -430,7 +427,7 @@ void loop()
 
     outputChannels();
 
-  } else if (displayState == 2) { // TODO: make automatic and manual version, [AUTOMATIC | MANUAL] [START SCAN] [BACK]
+  } else if (displayState == 2) { 
     scannerMenuInput();
     displayScannerMenu();
   } else if (displayState == 3) { // vicinity detector
@@ -667,11 +664,8 @@ void outputChannels()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
-///  Define FUNCTIONS
 //   These functions have been extracted from the RF24 library
 //   and modified to work on the ESP8266 under the Arduino framework
-//   Feel free to make corrections or efficiency improvements as you see
-//   fit.
 
 void getradiodetails()
 {
