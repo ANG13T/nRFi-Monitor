@@ -17,6 +17,7 @@
 | 2x Push Buttons | Gather user input |
 | NRF24L01 | Get 2.4GHz Traffic Data |
 | 3D Printed Case  | Protect components |
+| 10 x 24 Perf Board  | Connecting components |
 | 4x 8/32 0.625inch screws  | Hold case together |
 | Lipo Battery 3.7V (optional) | Power |
 | SDPT Switch (optional) | Control Battery |
