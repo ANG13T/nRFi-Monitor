@@ -163,7 +163,7 @@ void setup(void)
   display.display();
 
   // Display Radio Configuration
-  getradiodetails();
+  getRadioDetails();
   radio.setDataRate(RF24_1MBPS);
 
   WiFi.mode(WIFI_STA);
@@ -354,7 +354,7 @@ void printMenuScreen() {
   displayMenu();
 }
 
-int RoundNum(int num)
+int roundNum(int num)
 {
      int rem = num % 10;
      return rem >= 5 ? (num - rem + 10) : (num - rem);
@@ -368,12 +368,12 @@ void displayVicinityView() {
     display.drawString(0, 14, "SSID: "); display.drawString(30, 14, WiFi.SSID(vicinityMenuSelector));
     display.drawString(0, 26, "RSSI: "); display.drawString(30, 26, String(WiFi.RSSI(vicinityMenuSelector)) + " dBm");
     display.drawString(0, 38, "RSSI: "); display.drawString(30, 38, String(dBmtoPercentage(WiFi.RSSI(vicinityMenuSelector))) + "%");
-    int rounded = RoundNum(dBmtoPercentage(WiFi.RSSI(vicinityMenuSelector))) / 10;
-    String meter = RSSIMeter(rounded);
+    int rounded = roundNum(dBmtoPercentage(WiFi.RSSI(vicinityMenuSelector))) / 10;
+    String meter = rssiMeter(rounded);
     display.drawString(0, 50, meter); // [#####-----]   
 }
 
-String RSSIMeter (int amount) {
+String rssiMeter (int amount) {
   String meter = "[";
   for (int i = 0; i < amount; i++) {
      meter += "#";
@@ -564,7 +564,6 @@ void checkTrafficAnalyzerInput() {
   }
 
   if (increase == LOW) {
-    //Serial.print("Increase Channel");
     selectedChannel++;
     if (selectedChannel >= 13) selectedChannel = 0;
     delay(300);
@@ -667,20 +666,20 @@ void outputChannels()
 //   These functions have been extracted from the RF24 library
 //   and modified to work on the ESP8266 under the Arduino framework
 
-void getradiodetails()
+void getRadioDetails()
 {
   //Serial.println(); Serial.println();
-  //print_status(spiTrans(NOP));
-  print_address_register("RX_ADDR_P0-1\t", RX_ADDR_P0, 2);
-  print_byte_register("RX_ADDR_P2-5\t", RX_ADDR_P2, 4);
-  print_address_register("TX_ADDR\t\t", TX_ADDR, 1);
-  print_byte_register("RX_PW_P0-6\t\t", RX_PW_P0, 6);
-  print_byte_register("EN_AA\t\t", EN_AA, 1);
-  print_byte_register("EN_RXADDR\t\t", EN_RXADDR, 1);
-  print_byte_register("RF_CH\t\t", RF_CH, 1);
-  print_byte_register("RF_SETUP\t\t", RF_SETUP, 1);
-  print_byte_register("CONFIG\t\t", NRF_CONFIG, 1);
-  print_byte_register("DYNPD/FEATURE\t", DYNPD, 2);
+  //printStatus(spiTrans(NOP));
+  printAddressRegister("RX_ADDR_P0-1\t", RX_ADDR_P0, 2);
+  printByteRegister("RX_ADDR_P2-5\t", RX_ADDR_P2, 4);
+  printAddressRegister("TX_ADDR\t\t", TX_ADDR, 1);
+  printByteRegister("RX_PW_P0-6\t\t", RX_PW_P0, 6);
+  printByteRegister("EN_AA\t\t", EN_AA, 1);
+  printByteRegister("EN_RXADDR\t\t", EN_RXADDR, 1);
+  printByteRegister("RF_CH\t\t", RF_CH, 1);
+  printByteRegister("RF_SETUP\t\t", RF_SETUP, 1);
+  printByteRegister("CONFIG\t\t", NRF_CONFIG, 1);
+  printByteRegister("DYNPD/FEATURE\t", DYNPD, 2);
   String statTemp = rf24_datarate_e_str_P[getDataRate()];
   //Serial.printf("Data Rate\t\t= %s\r\n", statTemp.c_str());
   statTemp = rf24_model_e_str_P[isPVariant()];
@@ -701,7 +700,7 @@ uint8_t spiTrans(uint8_t cmd)
   return status;
 }
 
-void print_status(uint8_t status)
+void printStatus(uint8_t status)
 {
   printf_P(PSTR("STATUS\t\t= 0x%02x RX_DR=%x TX_DS=%x MAX_RT=%x RX_P_NO=%x TX_FULL=%x\r\n"),
            status,
@@ -723,7 +722,7 @@ void endTransaction()
   digitalWrite(CSN, HIGH);
 }
 
-void print_address_register(const char* name, uint8_t reg, uint8_t qty)
+void printAddressRegister(const char* name, uint8_t reg, uint8_t qty)
 {
   char tempBuff[20];
   String valueBuf;
@@ -732,7 +731,7 @@ void print_address_register(const char* name, uint8_t reg, uint8_t qty)
   while (qty--)
   {
     uint8_t buffer[addr_width];
-    read_register(reg++, buffer, sizeof buffer);
+    readRegister(reg++, buffer, sizeof buffer);
     valueBuf += " 0x";
     uint8_t* bufptr = buffer + sizeof buffer;
     while ( --bufptr >= buffer ) {
@@ -744,7 +743,7 @@ void print_address_register(const char* name, uint8_t reg, uint8_t qty)
   //Serial.print(valueBuf);
 }
 
-uint8_t read_register(uint8_t reg, uint8_t* buf, uint8_t len)
+uint8_t readRegister(uint8_t reg, uint8_t* buf, uint8_t len)
 {
   uint8_t status;
   beginTransaction();
@@ -756,21 +755,21 @@ uint8_t read_register(uint8_t reg, uint8_t* buf, uint8_t len)
   return status;
 }
 
-void print_byte_register(const char* name, uint8_t reg, uint8_t qty)
+void printByteRegister(const char* name, uint8_t reg, uint8_t qty)
 {
   char tempBuff[20];
   String valueBuf;
   valueBuf += name;
   valueBuf += "=";
   while (qty--) {
-    sprintf(tempBuff , " 0x%02x" , read_register(reg++));
+    sprintf(tempBuff , " 0x%02x" , readRegister(reg++));
     valueBuf += tempBuff;
   }
   valueBuf += "\r\n";
   //Serial.print(valueBuf);
 }
 
-uint8_t read_register(uint8_t reg)
+uint8_t readRegister(uint8_t reg)
 {
   uint8_t result;
   beginTransaction();
@@ -783,7 +782,7 @@ uint8_t read_register(uint8_t reg)
 rf24_datarate_e getDataRate( void )
 {
   rf24_datarate_e result ;
-  uint8_t dr = read_register(RF_SETUP) & (_BV(RF_DR_LOW) | _BV(RF_DR_HIGH));
+  uint8_t dr = readRegister(RF_SETUP) & (_BV(RF_DR_LOW) | _BV(RF_DR_HIGH));
 
   // switch uses RAM (evil!)
   // Order matters in our case below
@@ -812,7 +811,7 @@ bool isPVariant(void)
   {
     p_variant = true ;
   }
-  byte regRead = read_register(RF_SETUP);
+  byte regRead = readRegister(RF_SETUP);
   if ( regRead == 0b00001110 )    // register default for nRF24L01P
   {
     p_variant = true ;
@@ -824,8 +823,8 @@ rf24_crclength_e getCRCLength(void)
 {
   rf24_crclength_e result = RF24_CRC_DISABLED;
 
-  uint8_t config = read_register(NRF_CONFIG) & ( _BV(CRCO) | _BV(EN_CRC)) ;
-  uint8_t AA = read_register(EN_AA);
+  uint8_t config = readRegister(NRF_CONFIG) & ( _BV(CRCO) | _BV(EN_CRC)) ;
+  uint8_t AA = readRegister(EN_AA);
 
   if ( config & _BV(EN_CRC ) || AA)
   {
@@ -841,5 +840,5 @@ rf24_crclength_e getCRCLength(void)
 uint8_t getPALevel(void)
 {
 
-  return (read_register(RF_SETUP) & (_BV(RF_PWR_LOW) | _BV(RF_PWR_HIGH))) >> 1 ;
+  return (readRegister(RF_SETUP) & (_BV(RF_PWR_LOW) | _BV(RF_PWR_HIGH))) >> 1 ;
 }
